@@ -33,11 +33,6 @@ class SpacebattlesParser extends Parser{
         return (authorLabel === null) ? super.extractAuthor(dom) : authorLabel.textContent;
     };
 
-    removeUnwantedElementsFromContentElement(element) {
-        util.removeChildElementsMatchingCss(element, "div.bbCodeSpoiler");
-        super.removeUnwantedElementsFromContentElement(element);
-    }
-
     async fetchChapter(url) {
         let fetchedDom = await this.cache.fetch(url);
         let newDoc = Parser.makeEmptyDocForContent(url);
@@ -45,6 +40,7 @@ class SpacebattlesParser extends Parser{
         let parent = fetchedDom.getElementById(id).parentElement;
         this.addTitleToChapter(newDoc, parent);
         let content = parent.querySelector("article.message-body");
+        util.resolveLazyLoadedImages(content, "img.lazyload");
         newDoc.content.appendChild(content);
         return newDoc.dom;
     }
