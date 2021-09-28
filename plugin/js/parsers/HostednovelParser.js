@@ -8,11 +8,12 @@ class HostednovelParser extends Parser{
     }
 
     async getChapterUrls(dom, chapterUrlsUI) {
-        let url = dom.baseURI;
-        if (util.extractFilenameFromUrl(url) !== "chapters") {
-            url += "/chapters";
+        let url = new URL(dom.baseURI);
+        url.hash = "";
+        if (!url.pathname.endsWith("/chapters")) {
+            url.pathname += "/chapters";
         }
-        let urlsOfTocPages = this.extractTocPageUrls(dom, url);
+        let urlsOfTocPages = this.extractTocPageUrls(dom, url.toString());
         let chapters = [];
         return Parser.getChaptersFromAllTocPages(chapters, 
             this.extractPartialChapterList, urlsOfTocPages, chapterUrlsUI);
@@ -20,15 +21,11 @@ class HostednovelParser extends Parser{
 
     extractTocPageUrls(dom, initialTocUrl) {
         return [...dom.querySelectorAll(".chaptergroup")]
-            .map(article => article.className.split(" ").filter(s => s.startsWith("chaptergroup-")))
-            .map(s => s[0].substring(s[0].indexOf("-") + 1))
-            .filter(s => s != "")
-            .map(s => initialTocUrl + "/" + s);
+            .map(s => initialTocUrl + "/" + s.getAttribute("data-id"));
     }
 
     extractPartialChapterList(dom) {
-        let article = dom.querySelector("article.chaptergroup");
-        return util.hyperlinksToChapterList(article);
+        return util.hyperlinksToChapterList(dom);
     }
 
     findContent(dom) {
