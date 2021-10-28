@@ -15,8 +15,9 @@ class HostednovelParser extends Parser{
         }
         let urlsOfTocPages = this.extractTocPageUrls(dom, url.toString());
         let chapters = [];
-        return Parser.getChaptersFromAllTocPages(chapters, 
-            this.extractPartialChapterList, urlsOfTocPages, chapterUrlsUI);
+        return (await Parser.getChaptersFromAllTocPages(chapters, 
+            this.extractPartialChapterList, urlsOfTocPages, chapterUrlsUI))
+            .concat(this.chapterUrlsOnPage(dom));
     }
 
     extractTocPageUrls(dom, initialTocUrl) {
@@ -28,14 +29,31 @@ class HostednovelParser extends Parser{
         return util.hyperlinksToChapterList(dom);
     }
 
+    chapterUrlsOnPage(dom) {
+        return [...dom.querySelectorAll(".chaptergroup a:not([rel])")]
+            .map(a => util.hyperLinkToChapter(a))
+    }
+
     findContent(dom) {
         return dom.querySelector("#chapter");
+    }
+
+    populateUI(dom) {
+        super.populateUI(dom);
+        document.getElementById("removeAuthorNotesRow").hidden = false; 
     }
 
     extractTitleImpl(dom) {
         let link = dom.querySelector("h1");
         util.removeChildElementsMatchingCss(link, "a");
         return link;
+    }
+
+    removeUnwantedElementsFromContentElement(element) {
+        if (this.userPreferences.removeAuthorNotes.value) {
+            util.removeChildElementsMatchingCss(element, ".notes");
+        }
+        super.removeUnwantedElementsFromContentElement(element);
     }
 
     findChapterTitle(dom) {
