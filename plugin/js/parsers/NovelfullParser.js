@@ -1,10 +1,8 @@
-/*
-  Parser for novelfull.com
-*/
 "use strict";
 
 parserFactory.register("novelfull.com", function () { return new NovelfullParser() });
 parserFactory.register("allnovel.org", function () { return new NovelfullParser() });
+parserFactory.register("allnovelfull.com", function () { return new NovelfullParser() });
 parserFactory.register("freenovelsread.com", function () { return new NovelfullParser() });
 
 class NovelfullParser extends Parser{
@@ -14,13 +12,13 @@ class NovelfullParser extends Parser{
 
     getChapterUrls(dom, chapterUrlsUI) {
         return this.getChapterUrlsFromMultipleTocPages(dom,
-            NovelfullParser.extractPartialChapterList,
-            NovelfullParser.getUrlsOfTocPages,
+            this.extractPartialChapterList,
+            this.getUrlsOfTocPages,
             chapterUrlsUI
         );
     };
 
-    static getUrlsOfTocPages(dom) {
+    getUrlsOfTocPages(dom) {
         let link = dom.querySelector("li.last a");
         let urls = [];
         if (link != null) {
@@ -35,15 +33,16 @@ class NovelfullParser extends Parser{
 
     static buildUrlForTocPage(link, i) {
         let hostname = link.hostname;
-        if ((hostname === "novelfull.com") || (hostname === "allnovel.org")) {
-            link.search = `?page=${i}&per-page=50`;
-        } else {
+        if (hostname === "freenovelsread.com")
+        {
             link.pathname = link.pathname.split("/")[1] + "/" + i;
+        } else {
+            link.search = `?page=${i}&per-page=50`;
         }
         return link.href;
     }
 
-    static extractPartialChapterList(dom) {
+    extractPartialChapterList(dom) {
         return [...dom.querySelectorAll("ul.list-chapter a")]
             .map(link => util.hyperLinkToChapter(link));
     }
