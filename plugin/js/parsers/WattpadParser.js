@@ -155,7 +155,7 @@ class WattpadParser extends Parser{
 
     // title of the story  (not to be confused with title of each chapter)
     extractTitleImpl(dom) {
-        return dom.querySelector("div#story-landing h1");
+        return dom.querySelector("div.story-info span.sr-only");
     };
 
     extractAuthor(dom) {
@@ -179,7 +179,7 @@ class WattpadParser extends Parser{
 
     // individual chapter titles are not inside the content element
     findChapterTitle(dom) {
-        return dom.querySelector("h2");
+        return dom.querySelector("h1.h2");
     }
 
     findCoverImageUrl(dom) {
