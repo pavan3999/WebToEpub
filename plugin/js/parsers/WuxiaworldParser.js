@@ -59,7 +59,9 @@ class WuxiaworldParser extends Parser {
     // find the node(s) holding the story content
     findContent(dom) {
         let candidates = [...dom.querySelectorAll("div.fr-view:not(.panel-body)")];
-        return WuxiaworldParser.elementWithMostParagraphs(candidates);
+        let content = WuxiaworldParser.elementWithMostParagraphs(candidates);
+        this.cleanContent(content);
+        return content;
     }
 
     static elementWithMostParagraphs(elements) {
@@ -71,6 +73,14 @@ class WuxiaworldParser extends Parser {
         ).reduce(
             (a, c) => a.numParagraphs < c.numParagraphs ? c : a
         ).e;
+    }
+
+    cleanContent(content)
+    {
+        util.removeChildElementsMatchingCss(content, "button, #spoiler_teaser, .chapter-nav");
+        let toDelete = [...content.querySelectorAll("a")]
+            .filter(a => a.textContent === "Teaser");
+        util.removeElements(toDelete);
     }
 
     findChapterTitle(dom) {

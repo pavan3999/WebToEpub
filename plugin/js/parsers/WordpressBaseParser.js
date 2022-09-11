@@ -53,11 +53,12 @@ class WordpressBaseParser extends Parser {
     findParentNodeOfChapterLinkToRemoveAt(link) {
         // "next" and "previous" chapter links may be inside <strong> then <p> tag
         let toRemove = util.moveIfParent(link, "strong");
-        return util.moveIfParent(toRemove, "p");
+        return util.moveIfParent(toRemove, "p") ||
+            util.moveIfParent(toRemove, "span");
     }
 
     removeUnwantedElementsFromContentElement(element) {
-        util.removeChildElementsMatchingCss(element, "div.cb_p6_patreon_button, div.jp-relatedposts");
+        util.removeChildElementsMatchingCss(element, "div.cb_p6_patreon_button, div.jp-relatedposts, .cbxwpbkmarkwrap");
         super.removeUnwantedElementsFromContentElement(element);
     }
 
