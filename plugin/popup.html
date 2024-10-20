@@ -23,6 +23,8 @@
                         <button class="expandedButton" id="errorButtonOk">__MSG_button_error_OK__</button>
                         <button class="expandedButton" id="errorButtonRetry">__MSG_button_error_Retry__</button>
                         <button class="expandedButton" id="errorButtonCancel">__MSG_button_error_Cancel__</button>
+                        <button class="expandedButton" id="errorButtonOpenURL">__MSG_button_error_Open_URL__</button>
+                        <button class="expandedButton" id="errorButtonBlockURL">__MSG_button_error_Block_URL__</button>
                     </td>
                 </tr>
                 <tr id="errorMessageRow">
@@ -157,6 +159,8 @@
                             <tr>
                                 <td id="LibTemplateLibraryUses">Library uses: </td>
                                 <td colspan="2"><button id="LibTemplateClearLibrary">__MSG_button_Lib_Template_Clear_Library__</button></td>
+                                <td colspan="2"><button id="LibTemplateExportLibrary">__MSG_button_Lib_Template_Export_Library__</button></td>
+                                <td colspan="2"><button id="LibTemplateImportEpubButton">__MSG_button_Lib_Template_Import_Library__</button></td>
                             </tr>
                             <tr>
                                 <td id="LibTemplateUploadEpubFileLabel">__MSG_label_Lib_Template_Upload_Epub_File_Label__</td>
@@ -488,6 +492,7 @@
                 </div>
             </div>
             <button id="applyChangesButton" hidden>__MSG_button_Apply_Changes__</button>
+            <p id="editURLsHint" class="i18n" hidden>__MSG_label_Edit_URLs_Hint__</p>
             <div id="findingChapterUrlsMessageRow" class="i18n warning">__MSG_Searching_For_URLs_Please_Wait__</div>
             <table id="chapterUrlsTable" class="chapterlist">
                 <tr>
@@ -532,6 +537,7 @@
     <script src="js/parsers/230BookParser.js"></script>
     <script src="js/parsers/4kswParser.js"></script>
     <script src="js/parsers/69shuParser.js"></script>
+    <script src="js/parsers/88xiaoshuoParser.js"></script>
     <script src="js/parsers/888novelParser.js"></script>
     <script src="js/parsers/ActiveTranslationsParser.js"></script>
     <script src="js/parsers/AdultfanfictionParser.js"></script>
@@ -549,6 +555,7 @@
     <script src="js/parsers/BakaTsukiSeriesPageParser.js"></script>
     <script src="js/parsers/BetwixtedbutterflyParser.js"></script>
     <script src="js/parsers/BlogspotParser.js"></script>
+    <script src="js/parsers/Book18Parser.js"></script>
     <script src="js/parsers/BookswithqianyaParser.js"></script>
     <script src="js/parsers/Booktoki152Parser.js"></script>
     <script src="js/parsers/BotitranslationParser.js"></script>
@@ -578,6 +585,7 @@
     <script src="js/parsers/EngnovelParser.js"></script>
     <script src="js/parsers/ErofusParser.js"></script>
     <script src="js/parsers/ExiledrebelsscanlationsParser.js"></script>
+    <script src="js/parsers/FanFicParadiseParser.js"></script>
     <script src="js/parsers/FanFictionParser.js"></script>
     <script src="js/parsers/FastNovelParser.js"></script>
     <script src="js/parsers/Ffxs8Parser.js"></script>
@@ -591,6 +599,7 @@
     <script src="js/parsers/FreeWebNovelParser.js"></script>
     <script src="js/parsers/FullnovelParser.js"></script>
     <script src="js/parsers/GamefaqsGamespotParser.js"></script>
+    <script src="js/parsers/GenesiStudioParser.js"></script>
     <script src="js/parsers/GraverobbertlParser.js"></script>
     <script src="js/parsers/GravityNovelsParser.js"></script>
     <script src="js/parsers/GravityTalesParser.js"></script>
@@ -633,6 +642,7 @@
     <script src="js/parsers/LnmtlParser.js"></script>
     <script src="js/parsers/MachineTranslationParser.js"></script>
     <script src="js/parsers/MadnovelParser.js"></script>
+    <script src="js/parsers/MagicWizardsParser.js"></script>
     <script src="js/parsers/MangadexParser.js"></script>
     <script src="js/parsers/MandarinducktalesParser.js"></script>
     <script src="js/parsers/MangakakalotParser.js"></script>
@@ -692,6 +702,8 @@
     <script src="js/parsers/NovelversetranslationsParser.js"></script>
     <script src="js/parsers/NovicetranslationsParser.js"></script>
     <script src="js/parsers/NrvnqsrParser.js"></script>
+    <script src="js/parsers/NtruyenParser.js"></script>
+    <script src="js/parsers/NyahFanfictionParser.js"></script>
     <script src="js/parsers/NyantlParser.js"></script>
     <script src="js/parsers/OctopiiParser.js"></script>
     <script src="js/parsers/OnlinenovelbookParser.js"></script>
@@ -703,6 +715,7 @@
     <script src="js/parsers/PeachblossomcodexParser.js"></script>
     <script src="js/parsers/PeachpittingParser.js"></script>
     <script src="js/parsers/PeachpuffParser.js"></script>
+    <script src="js/parsers/PowanjuanParser.js"></script>
     <script src="js/parsers/PtwxzParser.js"></script>
     <script src="js/parsers/PuretlParser.js"></script>
     <script src="js/parsers/QidianParser.js"></script>
@@ -772,6 +785,7 @@
     <script src="js/parsers/UntamedAlleyParser.js"></script>
     <script src="js/parsers/VipNovelParser.js"></script>
     <script src="js/parsers/Wenku8Parser.js"></script>
+    <script src="js/parsers/WfxsParser.js"></script>
     <script src="js/parsers/WordexcerptParser.js"></script>
     <script src="js/parsers/WorldnovelOnlineParser.js"></script>
     <script src="js/parsers/XiaoshuoguiParser.js"></script>
@@ -809,6 +823,7 @@
     <script src="js/parsers/WuxiaworldParser.js"></script>
     <script src="js/parsers/WuxiaworldWorldParser.js"></script>
     <script src="js/parsers/XbiqugeParser.js"></script>
+    <script src="js/parsers/XenforoBatchParser.js"></script>
     <script src="js/parsers/ZenithNovelsParser.js"></script>
     <script src="js/parsers/ZeonicrepublicParser.js"></script>
     <script src="js/parsers/ZhenhunxiaoshuoParser.js"></script>

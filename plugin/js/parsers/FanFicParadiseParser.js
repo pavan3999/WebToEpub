@@ -1,14 +1,8 @@
 "use strict";
 
-parserFactory.register("forums.spacebattles.com", () => new SpacebattlesParser());
-//dead url
-parserFactory.register("forums.sufficientvelocity.com", () => new SpacebattlesParser());
-parserFactory.register("alternatehistory.com", () => new SpacebattlesParser());
-//dead url
-parserFactory.register("forum.questionablequesting.com", () => new SpacebattlesParser());
-parserFactory.register("questionablequesting.com", () => new SpacebattlesParser());
+parserFactory.register("fanficparadise.com", () => new FanFicParadiseParser());
 
-class SpacebattlesParser extends Parser{
+class FanFicParadiseParser extends Parser{
     constructor() {
         super();
         this.cache = new FetchCache();
@@ -20,7 +14,7 @@ class SpacebattlesParser extends Parser{
     }
 
     async getChapterUrls(dom) {
-        let chapters = [...dom.querySelectorAll("div.structItem--threadmark a")]
+        let chapters = [...dom.querySelectorAll("li.threadmarkListItem a")]
             .filter(this.isLinkToChapter);
         return chapters.map(a => util.hyperLinkToChapter(a));
     };
@@ -48,22 +42,23 @@ class SpacebattlesParser extends Parser{
         let newDoc = Parser.makeEmptyDocForContent(url);
         let newUrl = new URL(url);
         let id = newUrl.hash.substring(1) || newUrl.href.substring(newUrl.href.lastIndexOf("/") + 1);
-        let parent = fetchedDom.querySelector(`article.hasThreadmark[data-content='${id}']`);
+        let parent;
+        if (id == "") {
+            parent = fetchedDom.querySelector("li.hasThreadmark");
+        } else {
+            parent = fetchedDom.querySelector(`li.hasThreadmark[id='${id}']`);
+        }
         this.addTitleToChapter(newDoc, parent);
-        let content = parent.querySelector("article.message-body");
+        let content = parent.querySelector(".messageContent article");
         util.resolveLazyLoadedImages(content, "img.lazyload");
         newDoc.content.appendChild(content);
         return newDoc.dom;
     }
 
     addTitleToChapter(newDoc, parent) {
-        let titleElement = parent.querySelector("span.threadmarkLabel");
+        let titleElement = parent.querySelector("span.label");
         let title = newDoc.dom.createElement("h1");
         title.textContent = titleElement.textContent.trim();
         newDoc.content.appendChild(title);
-    }
-
-    getInformationEpubItemChildNodes(dom) {
-        return [...dom.querySelectorAll("article.threadmarkListingHeader-extraInfoChild")];
     }
 }

@@ -280,6 +280,7 @@ class ChapterUrlsUI {
         document.getElementById("coverUrlSection").hidden = !toTable;
         document.getElementById("chapterSelectControlsDiv").hidden = !toTable;
         ChapterUrlsUI.modifyApplyChangesButtons(button => button.hidden = toTable);
+        document.getElementById("editURLsHint").hidden = toTable;
     }
 
     /** 
@@ -287,7 +288,15 @@ class ChapterUrlsUI {
     */
     setTableMode() {
         try {
-            let chapters = this.htmlToChapters(ChapterUrlsUI.getEditChaptersUrlsInput().value);
+            let inputvalue = ChapterUrlsUI.getEditChaptersUrlsInput().value;
+            let chapters;
+            let lines = inputvalue.split("\n");
+            lines = lines.filter(a => a.trim() != "").map(a => a.trim());
+            if (URL.canParse(lines[0])) {
+                chapters = this.URLsToChapters(lines);
+            } else {
+                chapters = this.htmlToChapters(inputvalue);
+            }
             this.parser.setPagesToFetch(chapters);
             this.populateChapterUrlsTable(chapters);
             this.usingTable = true;
@@ -316,6 +325,17 @@ class ChapterUrlsUI {
         let html = "<html><head><title></title><body>" + innerHtml + "</body></html>";
         let doc = new DOMParser().parseFromString(html, "text/html");
         return [...doc.body.querySelectorAll("a")].map(a => util.hyperLinkToChapter(a));
+    }
+
+    /** 
+    * @private
+    */
+    URLsToChapters(URLs) {
+        let returnchapters = URLs.map(e => ({
+            sourceUrl: e,
+            title: "[placeholder]"
+        }));
+        return returnchapters;
     }
 
     /** @private */
@@ -420,6 +440,9 @@ class ChapterUrlsUI {
     /** @private */
     static tellUserAboutShiftClick(event, row) {
         if (event.shiftKey || (ChapterUrlsUI.lastSelectedRow === null)) {
+            return;
+        }
+        if (ChapterUrlsUI.ConsecutiveRowClicks == 5) {
             return;
         }
         let distance = Math.abs(row.rowIndex - ChapterUrlsUI.lastSelectedRow);

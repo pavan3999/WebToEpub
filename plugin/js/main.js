@@ -40,7 +40,6 @@ var main = (function () {
         if (setParser(url, dom)) {
             try {
                 userPreferences.addObserver(parser);
-                userPreferences.addObserver(library);
                 let metaInfo = parser.getEpubMetaInfo(dom, userPreferences.useFullTitle.value);
                 populateMetaInfo(metaInfo);
                 setUiToDefaultState();
@@ -233,6 +232,7 @@ var main = (function () {
 
     function loadUserPreferences() {
         userPreferences = UserPreferences.readFromLocalStorage();
+        userPreferences.addObserver(library);
         userPreferences.writeToUi();
         userPreferences.hookupUi();
         BakaTsukiSeriesPageParser.registerBakaParsers(userPreferences.autoSelectBTSeriesPage.value);

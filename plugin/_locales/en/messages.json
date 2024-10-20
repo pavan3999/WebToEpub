@@ -23,6 +23,14 @@
 		"message": "Clear Library",
 		"description": "Label on button to clear Local Storage"
 	},
+	"__MSG_button_Lib_Template_Export_Library__": {
+		"message": "Export Library",
+		"description": "Label on button to export Library in json format"
+	},
+	"__MSG_button_Lib_Template_Import_Library__": {
+		"message": "Import Library",
+		"description": "Label on button to import Library in json format"
+	},
 	"__MSG_button_Lib_Template_Upload_Epub__": {
 		"message": "Upload Epub",
 		"description": "Label on button to Upload Epub in Library"
@@ -106,6 +114,14 @@
 	"__MSG_button_error_Retry__": {
 		"message": "Retry",
 		"description": "Label on 'Retry' button when show error"
+	},
+	"__MSG_button_error_Open_URL__": {
+		"message": "Open URL for Captcha",
+		"description": "Label on 'Open URL for Captcha' button when show error HTTP 403"
+	},
+	"__MSG_button_error_Block_URL__": {
+		"message": "Block Website for future requests",
+		"description": "Label on 'Block Website for future requests' button when show error HTTP 403"
 	},
 	"__MSG_button_finished_default_parser__": {
 		"message": "Apply",
@@ -238,6 +254,10 @@
 	"__MSG_label_Default_Parser_Unwanted_Elements_CSS__": {
 		"message": "CSS selector for element(s) to remove:",
 		"description": "Label in front input for CCS selector for elements to remove"
+	},
+	"__MSG_label_Edit_URLs_Hint__": {
+		"message": "You can edit the URLs in html format or as a simple URL list (one URL per line).",
+		"description": "Label in Edit Chapter URLs to help the user."
 	},
 	"__MSG_label_Element_With_Chapter_Content__": {
 		"message": "Element with Chapter Content:",
@@ -627,7 +647,7 @@
 		"description": "Internal message for developer."
 	},
 	"warning403ErrorResponse": {
-		"message": "WARNING: Site '$host$' has sent an Access Denied (403) error.  You may need to logon to site, or browse site normally until you get a Cloudflare \"Are you a human\" page or satisfy some other CAPTCHA before WebToEpub can continue. Open Page?",
+		"message": "WARNING: Site '$host$' has sent an Access Denied (403) error.\nYou may need to logon to site, or browse site normally\nuntil you get a Cloudflare \"Are you a human\" page or satisfy some other CAPTCHA\nbefore WebToEpub can continue.\n",
 		"description": "Warning message for user when site sends a 403 response.",
 		"placeholders": {
 			"host": {
