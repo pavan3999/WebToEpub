@@ -387,6 +387,10 @@
 		"message": "Remove Author Notes",
 		"description": "Label for checkbox to remove Author Notes from chapters"
 	},
+	"__MSG_label_Remove_Translator_Notes__": {
+		"message": "Remove Translator Notes",
+		"description": "Label for checkbox to remove Translator Notes from chapters"
+	},
 	"__MSG_label_Remove_Chapter_Number__": {
 		"message": "Remove Chapter Numbers",
 		"description": "Label for checkbox to remove Chapter Numbers from chapter titles"

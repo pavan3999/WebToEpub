@@ -59,6 +59,7 @@ class HostednovelParser extends Parser{
     populateUI(dom) {
         super.populateUI(dom);
         document.getElementById("removeAuthorNotesRow").hidden = false; 
+        document.getElementById("removeTranslatorNotesRow").hidden = false; 
     }
 
     extractTitleImpl(dom) {
@@ -69,6 +70,7 @@ class HostednovelParser extends Parser{
 
     removeUnwantedElementsFromContentElement(element) {
         this.tagAuthorNotesBySelector(element, "div.bg-light-200");
+        this.tagTranslatorNotesBySelector(element, "div.bg-light-100");
         util.removeChildElementsMatchingCss(element, "div.adbox");
         super.removeUnwantedElementsFromContentElement(element);
     }

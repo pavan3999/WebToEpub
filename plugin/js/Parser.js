@@ -656,6 +656,23 @@ class Parser {
         }
     }
 
+
+    tagTranslatorNotes(elements) {
+        for(let e of elements) {
+            e.classList.add("webToEpub-translator-note");
+        }
+    }
+
+    tagTranslatorNotesBySelector(element, selector) {
+        let notes = element.querySelectorAll(selector);
+        if (this.userPreferences.removeTranslatorNotes.value) {
+            util.removeElements(notes);
+        } else {
+            this.tagTranslatorNotes(notes);
+        }
+    }
+
+
     static makeEmptyDocForContent(baseUrl) {
         let dom = document.implementation.createHTMLDocument("");
         if (baseUrl != null) {
