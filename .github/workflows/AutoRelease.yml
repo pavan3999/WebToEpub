@@ -4,7 +4,7 @@ name: Auto release developer-build
 
 on:
   push:
-    branches: [ ExperimentalTabMode ] 
+    branches: [ Remove_Translator_Notes ] 
   workflow_dispatch:
     inputs:
       version:
