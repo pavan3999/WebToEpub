@@ -8,7 +8,6 @@ parserFactory.register("genesistudio.com", () => new GenesiStudioParser());
 class GenesiStudioParser extends Parser{
     constructor() {
         super();
-        this.minimumThrottle = 2000;
     }
     populateUI(dom) {
         super.populateUI(dom);
