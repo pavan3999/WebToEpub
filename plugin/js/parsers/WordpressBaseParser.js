@@ -65,7 +65,7 @@ class WordpressBaseParser extends Parser {
             util.moveIfParent(toRemove, "span");
     }
 
-removeUnwantedElementsFromContentElement(element) {
+    removeUnwantedElementsFromContentElement(element) {
         util.removeChildElementsMatchingSelector(element, "div.cb_p6_patreon_button, div.jp-relatedposts, .cbxwpbkmarkwrap");
         super.removeUnwantedElementsFromContentElement(element);
     }
