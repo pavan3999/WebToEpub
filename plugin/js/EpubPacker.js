@@ -1,19 +1,8 @@
 /*
-  Functions for packing an EPUB file
+ Functions for packing an EPUB file
 */
 "use strict";
 
-/*
-    For our purposes, an EPUB only contains two types of content file: XHTML and image.
-    - The HTML files are in reading order (i.e. Appear in same order as spine and table of contents (ToC))
-    - If an HTML file entry has a "title" element, it will appear in the ToC
-    - Stand-alone images (e.g. Cover) will have an XHTML entry that points to the image.
-    - First image, (if there are any) will be the cover image
-*/
-
-/// <param name="uuid" type="string">identifier for this EPUB.  (i.e. "origin" URL story was downloaded from)</param>
-/// <param name="title" type="string">The Title of the story</param>
-/// <param name="author" type="string">The writer of the story</param>
 class EpubPacker {
     constructor(metaInfo, version = EpubPacker.EPUB_VERSION_2) {
         this.metaInfo = metaInfo;
@@ -57,14 +46,14 @@ class EpubPacker {
 
     // every EPUB must have a mimetype and a container.xml file
     addRequiredFiles(zipFile) {
-        zipFile.add("mimetype",  new zip.TextReader("application/epub+zip"),{compressionMethod: 0});
+        zipFile.add("mimetype", new zip.TextReader("application/epub+zip"),{compressionMethod: 0});
         zipFile.add("META-INF/container.xml",
             new zip.TextReader("<?xml version=\"1.0\"?>" +
-            "<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">" +
+                "<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">" +
                 "<rootfiles>" +
-                    "<rootfile full-path=\"OEBPS/content.opf\" media-type=\"application/oebps-package+xml\"/>" +
+                "<rootfile full-path=\"OEBPS/content.opf\" media-type=\"application/oebps-package+xml\"/>" +
                 "</rootfiles>" +
-            "</container>")
+                "</container>")
         );
     }
 
@@ -81,6 +70,7 @@ class EpubPacker {
         return util.xmlToString(opf);
     }
 
+    // TITLE FIX: Enhanced buildMetaData with validation
     buildMetaData(opf, epubItemSupplier) {
         let opf_ns = "http://www.idpf.org/2007/opf";
         let dc_ns = "http://purl.org/dc/elements/1.1/";
@@ -89,7 +79,11 @@ class EpubPacker {
         metadata.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:dc", dc_ns);
         metadata.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:opf", opf_ns);
         opf.documentElement.appendChild(metadata);
-        this.createAndAppendChildNS(metadata, dc_ns, "dc:title", this.metaInfo.title);
+        
+        // TITLE FIX: Validate title before writing to EPUB metadata
+        let validatedTitle = EpubMetaInfo.validateTitle(this.metaInfo.title, "Untitled Book");
+        this.createAndAppendChildNS(metadata, dc_ns, "dc:title", validatedTitle);
+        
         this.createAndAppendChildNS(metadata, dc_ns, "dc:language", this.metaInfo.language);
         this.createAndAppendChildNS(metadata, dc_ns, "dc:date", this.getDateForMetaData());
         if (!util.isNullOrEmpty(this.metaInfo.subject)) {
@@ -109,7 +103,7 @@ class EpubPacker {
             this.addMetaProperty(metadata, translator, "role", "translator", "trl");
         }
 
-        let idText = (this.version === EpubPacker.EPUB_VERSION_3 ? "" : "") + this.metaInfo.uuid;
+        let idText = (this.version === EpubPacker.EPUB_VERSION_3 ? "uri:" : "") + this.metaInfo.uuid;
         let identifier = this.createAndAppendChildNS(metadata, dc_ns, "dc:identifier", idText);
         identifier.setAttributeNS(null, "id", "BookId");
         if (this.version === EpubPacker.EPUB_VERSION_2) {
@@ -276,7 +270,9 @@ class EpubPacker {
 
     buildDocTitle(ncx, ns) {
         let docTitle = this.createAndAppendChildNS(ncx.documentElement, ns, "docTitle");
-        this.createAndAppendChildNS(docTitle, ns, "text", this.metaInfo.title);
+        // TITLE FIX: Validate title for table of contents as well
+        let validatedTitle = EpubMetaInfo.validateTitle(this.metaInfo.title, "Untitled Book");
+        this.createAndAppendChildNS(docTitle, ns, "text", validatedTitle);
     }
 
     populateNavElement(nav, ns, epubItemSupplier) {
@@ -294,7 +290,8 @@ class EpubPacker {
         let li = this.createAndAppendChildNS(parent, ns, "li");
         let link = this.createAndAppendChildNS(li, ns, "a");
         link.href = this.makeRelative(chapterInfo.src);
-        link.textContent = chapterInfo.title;
+        // TITLE FIX: Validate chapter title for navigation
+        link.textContent = EpubMetaInfo.validateTitle(chapterInfo.title, "Untitled Chapter");
         return this.createAndAppendChildNS(li, ns, "ol");
     }
 
@@ -329,7 +326,9 @@ class EpubPacker {
         navPoint.setAttributeNS(null, "id", this.makeId(util.zeroPad(id)));
         navPoint.setAttributeNS(null, "playOrder", playOrder);
         let navLabel = this.createAndAppendChildNS(navPoint, ns, "navLabel");
-        this.createAndAppendChildNS(navLabel, ns, "text", chapterInfo.title);
+        // TITLE FIX: Validate chapter title for navigation points
+        let validatedTitle = EpubMetaInfo.validateTitle(chapterInfo.title, "Untitled Chapter");
+        this.createAndAppendChildNS(navLabel, ns, "text", validatedTitle);
         this.createAndAppendChildNS(navPoint, ns, "content").setAttributeNS(null, "src", this.makeRelative(chapterInfo.src));
         return navPoint;
     }
@@ -346,7 +345,7 @@ class EpubPacker {
 
     createAndAppendChildNS(element, ns, name, data) {
         let child = element.ownerDocument.createElementNS(ns, name);
-        if (typeof data  !== "undefined") {
+        if (typeof data !== "undefined") {
             child.appendChild(element.ownerDocument.createTextNode(data));
         }
         element.appendChild(child);
@@ -375,8 +374,8 @@ EpubPacker.XHTML_MIME_TYPE = "application/xml";
 EpubPacker.HTML_MIME_TYPE = "text/html";
 
 /*
-  Class to make sure we correctly nest the NavPoint elements
-  in the table of contents
+ Class to make sure we correctly nest the NavPoint elements
+ in the table of contents
 */
 class NavPointParentElementsStack {
     constructor(navMap) {
