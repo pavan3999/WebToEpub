@@ -129,7 +129,7 @@ class ChapterUrlsUI {
 
     static limitNumOfChapterS(maxChapters) {
         let max = util.isNullOrEmpty(maxChapters) ? 10000 : parseInt(maxChapters.replace(",", ""));
-        let selectedRows = [...ChapterUrlsUI.getChapterUrlsTable().querySelectorAll("[type='checkbox'")]
+        let selectedRows = [...ChapterUrlsUI.getChapterUrlsTable().querySelectorAll("[type='checkbox']")]
             .filter(c => c.checked)
             .map(c => c.parentElement.parentElement);
         if (max< selectedRows.length ) {
@@ -159,7 +159,7 @@ class ChapterUrlsUI {
         rangeStart.onchange = ChapterUrlsUI.onRangeChanged;
         rangeEnd.onchange = ChapterUrlsUI.onRangeChanged;
     }
- 
+    
     /** @private */
     static onRangeChanged() {
         let startIndex = ChapterUrlsUI.selectionToRowIndex(ChapterUrlsUI.getRangeStartChapterSelect());
@@ -186,8 +186,8 @@ class ChapterUrlsUI {
     }
     
     /** 
-    * @private
-    */
+     * @private
+     */
     static getChapterUrlsTable() {
         return document.getElementById("chapterUrlsTable");
     }
@@ -210,16 +210,16 @@ class ChapterUrlsUI {
     }
 
     /** 
-    * @private
-    */
+     * @private
+     */
     static modifyApplyChangesButtons(mutator) {
         mutator(document.getElementById("applyChangesButton"));
         mutator(document.getElementById("applyChangesButton2"));
     }
 
     /** 
-    * @private
-    */
+     * @private
+     */
     static getEditChaptersUrlsInput() {
         return document.getElementById("editChaptersUrlsInput");
     }
@@ -254,8 +254,8 @@ class ChapterUrlsUI {
     }
 
     /** 
-    * @private
-    */
+     * @private
+     */
     static appendCheckBoxToRow(row, chapter) {
         chapter.isIncludeable = chapter.isIncludeable ?? true;
         chapter.previousDownload = chapter.previousDownload ?? false;
@@ -294,16 +294,29 @@ class ChapterUrlsUI {
         col.appendChild(downloadStateDiv);
     }
 
-    /** 
-    * @private
-    */
+    // TITLE FIX: Enhanced appendInputTextToRow with validation
     static appendInputTextToRow(row, chapter) {
         let col = document.createElement("td");
         let input = document.createElement("input");
         input.type = "text";
-        input.value = chapter.title;
+        
+        // Validate chapter title before setting
+        let validTitle = chapter.title;
+        if (!validTitle || validTitle.trim() === "" || validTitle === "[placeholder]") {
+            validTitle = "Untitled Chapter";
+        }
+        
+        input.value = validTitle;
         input.className = "fullWidth";
-        input.addEventListener("blur", () => { chapter.title = input.value; },  true);
+        input.addEventListener("blur", () => { 
+            // Validate on blur as well
+            let newTitle = input.value.trim();
+            if (newTitle === "") {
+                newTitle = "Untitled Chapter";
+                input.value = newTitle;
+            }
+            chapter.title = newTitle; 
+        }, true);
         col.appendChild(input);
         row.appendChild(col);
     }
@@ -323,8 +336,8 @@ class ChapterUrlsUI {
     }
 
     /** 
-    * @private
-    */
+     * @private
+     */
     static appendColumnDataToRow(row, textData) {
         let col = document.createElement("td");
         col.innerText = textData;
@@ -334,8 +347,8 @@ class ChapterUrlsUI {
     }
 
     /** 
-    * @public
-    */
+     * @public
+     */
     static setVisibleUI(toTable) {
         // toggle mode
         ChapterUrlsUI.getEditChaptersUrlsInput().hidden = toTable;
@@ -348,8 +361,8 @@ class ChapterUrlsUI {
     }
 
     /** 
-    * @private
-    */
+     * @private
+     */
     setTableMode() {
         try {
             let inputvalue = ChapterUrlsUI.getEditChaptersUrlsInput().value;
@@ -383,17 +396,17 @@ class ChapterUrlsUI {
     }
 
     /** 
-    * @private
-    */
+     * @private
+     */
     htmlToChapters(innerHtml) {
-        let html = "<html><head><title></title><body>" + innerHtml + "</body></html>";
+        let html = "<html><body>" + innerHtml + "</body></html>";
         let doc = util.sanitize(html);
         return [...doc.body.querySelectorAll("a")].map(a => util.hyperLinkToChapter(a));
     }
 
     /** 
-    * @private
-    */
+     * @private
+     */
     URLsToChapters(URLs) {
         let returnchapters = URLs.map(e => ({
             sourceUrl: e,
@@ -437,8 +450,8 @@ class ChapterUrlsUI {
     }
 
     /** 
-    * @private
-    */
+     * @private
+     */
     setEditInputMode() {
         this.usingTable = false;
         ChapterUrlsUI.setVisibleUI(this.usingTable);
@@ -448,7 +461,7 @@ class ChapterUrlsUI {
     }
 
     chaptersToHTML(chapters) {
-        let doc = util.sanitize("<html><head><title></title><body></body></html>");
+        let doc = util.sanitize("<html><body></body></html>");
         for (let chapter of chapters.filter(c => c.isIncludeable)) {
             doc.body.appendChild(this.makeLink(doc, chapter));
             doc.body.appendChild(doc.createTextNode("\r"));
