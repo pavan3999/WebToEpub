@@ -78,12 +78,12 @@ class EpubItem {
     }
 
     populateTitle(doc, body) {
-        let title = doc.querySelector("title");
-        let h1 = body.querySelector("h1");
-        if (util.isNullOrEmpty(title.textContent) && (h1 !== null)) {
-            title.textContent = h1.textContent;
-        }
+    let title = doc.querySelector("title");
+    let h1 = body.querySelector("h1");
+    if (util.isNullOrEmpty(title.textContent) && (h1 !== null)) {
+        title.textContent = h1.textContent;
     }
+}
 
     // convert type of heading element to nesting depth on Table of Contents
     // H1 = 0, H2 = 1, etc
