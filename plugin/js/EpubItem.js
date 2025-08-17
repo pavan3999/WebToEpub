@@ -138,7 +138,7 @@ class ChapterEpubItem extends EpubItem { // eslint-disable-line no-unused-vars
         super(chapter.sourceUrl);
         super.setIndex(index);
         this.nodes = Array.from(content.childNodes);
-        this.chapterTitle = chapter.title;
+        this.chapterTitle = chapter.title || "Chapter " + (index + 1); // Ensure fallback
         this.newArc = chapter.newArc;
     }
 
