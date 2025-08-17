@@ -41,7 +41,7 @@ class EpubItemSupplier { // eslint-disable-line no-unused-vars
 
     makeCoverImageXhtmlFile(emptyDocFactory) {
         let doc = emptyDocFactory();
-        let body = doc.getElementsByTagName("body");
+        let body = doc.getElementsByTagName("body")[0];  // Get the first <body> element
         let userPreferences = this.imageCollector.userPreferences;
     
         // Set cover page title
