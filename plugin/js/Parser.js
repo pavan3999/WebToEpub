@@ -1,10 +1,7 @@
-/*
-  Base class that all parsers build from.
-*/
 "use strict";
 
-/**
- * For sites that have multiple chapters per web page, this can minimize HTTP calls
+/*
+ For sites that have multiple chapters per web page, this can minimize HTTP calls
  */
 class FetchCache { // eslint-disable-line no-unused-vars
     constructor() {
@@ -13,7 +10,7 @@ class FetchCache { // eslint-disable-line no-unused-vars
     }
 
     async fetch(url) {
-        if  (!this.inCache(url)) {
+        if (!this.inCache(url)) {
             this.dom = (await HttpClient.wrapFetch(url)).responseXML;
             this.path = new URL(url).pathname;
         }
@@ -22,12 +19,12 @@ class FetchCache { // eslint-disable-line no-unused-vars
 
     inCache(url) {
         return (((new URL(url).pathname) === this.path) 
-        && (this.dom !== null));
+            && (this.dom !== null));
     }
 }
 
-/**
- * A Parser's state variables
+/*
+ A Parser's state variables
 */
 class ParserState {
     constructor() {
@@ -51,9 +48,10 @@ class ParserState {
     }
 }
 
-class Parser {    
+class Parser { 
     constructor(imageCollector) {
-        this.minimumThrottle = null;
+        this.minimumThrottle = 500;
+        this.maxSimultanousFetchSize = 1;
         this.state = new ParserState();
         this.imageCollector = imageCollector || new ImageCollector();
         this.userPreferences = null;
@@ -74,7 +72,7 @@ class Parser {
     }
     
     //Use this option if the parser isn't sending the correct HTTP header
-    isCustomError(response) {  // eslint-disable-line no-unused-vars
+    isCustomError(response) { // eslint-disable-line no-unused-vars
         return false;
     }
 
@@ -101,7 +99,7 @@ class Parser {
 
     isWebPagePackable(webPage) {
         return ((webPage.isIncludeable)
-         && ((webPage.rawDom != null) || (webPage.error != null)));
+            && ((webPage.rawDom != null) || (webPage.error != null)));
     }
 
     convertRawDomToContent(webPage) {
@@ -130,25 +128,49 @@ class Parser {
         return content;
     }
 
+    // TITLE FIX: Enhanced addTitleToContent with fallbacks
     addTitleToContent(webPage, content) {
         let title = this.findChapterTitle(webPage.rawDom, webPage);
+        
         if (title != null) {
             if (title instanceof HTMLElement) {
                 title = title.textContent;
             }
-            if (webPage.title == "[placeholder]") {
-                webPage.title = title.trim();
+            title = Parser.validateAndCleanTitle(title);
+            if (webPage.title === "[placeholder]") {
+                webPage.title = title;
             }
             if (!this.titleAlreadyPresent(title, content)) {
                 let titleElement = webPage.rawDom.createElement("h1");
-                titleElement.appendChild(webPage.rawDom.createTextNode(title.trim()));
+                titleElement.appendChild(webPage.rawDom.createTextNode(title));
                 content.insertBefore(titleElement, content.firstChild);
             }
         } else {
-            if (webPage.title == "[placeholder]") {
-                webPage.title = webPage.rawDom.title;
+            let fallbackTitle = Parser.generateFallbackTitle(webPage);
+            if (webPage.title === "[placeholder]") {
+                webPage.title = fallbackTitle;
             }
         }
+    }
+
+    // NEW: Title validation and fallback helpers
+    static validateAndCleanTitle(title) {
+        if (!title || typeof title !== "string") return "Untitled Chapter";
+        title = title.trim();
+        if (title === "" || title === "[placeholder]") return "Untitled Chapter";
+        return title;
+    }
+
+    static generateFallbackTitle(webPage) {
+        try {
+            let url = new URL(webPage.sourceUrl);
+            let parts = url.pathname.split('/').filter(part => part.length > 0);
+            if (parts.length > 0) {
+                let lastPart = parts[parts.length - 1];
+                return lastPart.replace(/[-_]/g, ' ').replace(/\.[^/.]+$/, "");
+            }
+        } catch (e) {}
+        return (webPage.rawDom && webPage.rawDom.title) ? webPage.rawDom.title : "Untitled Chapter";
     }
 
     titleAlreadyPresent(title, content) {
@@ -157,11 +179,11 @@ class Parser {
             && (title.trim() === existingTitle.textContent.trim());
     }
 
-    /**
+    /*
      * Element with title of an individual chapter
      * Override when chapter title not in content element
-    */
-    findChapterTitle(dom) {   // eslint-disable-line no-unused-vars
+     */
+    findChapterTitle(dom) { // eslint-disable-line no-unused-vars
         return null;
     }
 
@@ -190,9 +212,9 @@ class Parser {
         // default implementation is do nothing more
     }
 
-    /**
+    /*
      * Default implementation, take first image in content section
-    */
+     */
     findCoverImageUrl(dom) {
         if (dom != null) {
             let content = this.findContent(dom);
@@ -217,9 +239,9 @@ class Parser {
         util.removeElements(chapterLinks);
     }
 
-    /**
-    * default implementation turns each webPage into single epub item
-    */
+    /*
+     * default implementation turns each webPage into single epub item
+     */
     webPageToEpubItems(webPage, epubItemIndex) {
         let content = this.convertRawDomToContent(webPage);
         let items = [];
@@ -238,9 +260,9 @@ class Parser {
         return [new ChapterEpubItem(webPage, temp.content, epubItemIndex)];
     }
 
-    /**
-    * default implementation
-    */
+    /*
+     * default implementation
+     */
     static extractTitleDefault(dom) {
         let title = dom.querySelector("meta[property='og:title']");
         return (title === null) ? dom.title : title.getAttribute("content");
@@ -250,28 +272,36 @@ class Parser {
         return Parser.extractTitleDefault(dom);
     }
 
+    // TITLE FIX: Enhanced extractTitle with validation
     extractTitle(dom) {
         let title = this.extractTitleImpl(dom);
         if (title == null) {
             title = Parser.extractTitleDefault(dom);
         }
-        if (title.textContent !== undefined) {
+        if (title && title.textContent !== undefined) {
             title = title.textContent;
         }
-        return title.trim();
+        if (!title || typeof title !== "string") {
+            title = dom.title || "Untitled";
+        }
+        title = title.trim();
+        if (title === "") {
+            title = "Untitled";
+        }
+        return title;
     }
 
-    /**
-    * default implementation
-    */
-    extractAuthor(dom) {  // eslint-disable-line no-unused-vars
-        return "<unknown>";
+    /*
+     * default implementation
+     */
+    extractAuthor(dom) { // eslint-disable-line no-unused-vars
+        return "";
     }
 
-    /**
-    * default implementation, 
-    * if not available, default to English
-    */
+    /*
+     * default implementation, 
+     * if not available, default to English
+     */
     extractLanguage(dom) {
         // try jetpack tag
         let locale = dom.querySelector("meta[property='og:locale']");
@@ -284,11 +314,11 @@ class Parser {
         return (locale === null) ? "en" : locale;
     }
 
-    /**
-    * default implementation, 
-    * if not available, return ''
-    */
-    extractSubject(dom) {   // eslint-disable-line no-unused-vars
+    /*
+     * default implementation, 
+     * if not available, return ''
+     */
+    extractSubject(dom) { // eslint-disable-line no-unused-vars
         return "";
     }
 
@@ -301,13 +331,13 @@ class Parser {
         return infoDiv.textContent;
     }
 
-    /**
-    * default implementation, Derived classes will override
-    */
-    extractSeriesInfo(dom, metaInfo) {  // eslint-disable-line no-unused-vars
+    /*
+     * default implementation, Derived classes will override
+     */
+    extractSeriesInfo(dom, metaInfo) { // eslint-disable-line no-unused-vars
     }
 
-    async loadEpubMetaInfo(dom) {  // eslint-disable-line no-unused-vars
+    async loadEpubMetaInfo(dom) { // eslint-disable-line no-unused-vars
         return;
     }
 
@@ -367,7 +397,7 @@ class Parser {
 
     makeSaveAsFileNameWithoutExtension(title, useFullTitle) {
         let maxFileNameLength = useFullTitle ? 512 : 20;
-        let fileName = (title == null)  ? "web" : util.safeForFileName(title, maxFileNameLength);
+        let fileName = (title == null) ? "web" : util.safeForFileName(title, maxFileNameLength);
         if (util.isStringWhiteSpace(fileName)) {
             // title is probably not English, so just use it as is
             fileName = title;
@@ -414,7 +444,7 @@ class Parser {
         urlElement.appendChild(document.createTextNode(this.state.chapterListUrl));
         div.appendChild(urlElement);
         let infoDiv = document.createElement("div");
-        this.populateInfoDiv(infoDiv, dom);    
+        this.populateInfoDiv(infoDiv, dom); 
         let childNodes = [title, div, infoDiv];
         let chapter = {
             sourceUrl: this.state.chapterListUrl,
@@ -438,7 +468,7 @@ class Parser {
         util.removeChildElementsMatchingSelector(infoDiv, "img");
     }
 
-    cleanInformationNode(node) {     // eslint-disable-line no-unused-vars
+    cleanInformationNode(node) { // eslint-disable-line no-unused-vars
         // do nothing, derived class overrides as required
     }
 
@@ -449,8 +479,8 @@ class Parser {
         let chapterUrlsUI = new ChapterUrlsUI(this);
         this.userPreferences.setReadingListCheckbox(url);
 
-        // returns promise, because may need to fetch additional pages to find list of chapters
-        await this.getChapterUrls(firstPageDom, chapterUrlsUI).then(async (chapters) => {
+        try {
+            let chapters = await this.getChapterUrls(firstPageDom, chapterUrlsUI);
             if (this.userPreferences.chaptersPageInChapterList.value) {
                 chapters = this.addFirstPageUrlToWebPages(url, firstPageDom, chapters);
             }
@@ -467,9 +497,9 @@ class Parser {
             }
             this.state.setPagesToFetch(chapters);
             chapterUrlsUI.connectButtonHandlers();
-        }).catch((err) => {
+        } catch (err) {
             ErrorLog.showErrorMessage(err);
-        });
+        }
     }
 
     cleanWebPageUrls(webPages) {
@@ -500,7 +530,7 @@ class Parser {
             return webPages;
         } else {
             return [{
-                sourceUrl:  url,
+                sourceUrl: url,
                 title: this.extractTitle(firstPageDom)
             }].concat(webPages);
         }
@@ -560,9 +590,7 @@ class Parser {
     }
 
     groupPagesToFetch(webPages, index) {
-        let blockSize = parseInt(this.userPreferences.maxPagesToFetchSimultaneously.value);
-        blockSize = this.clampSimultanousFetchSize(blockSize);
-        return webPages.slice(index, index + blockSize);
+        return webPages.slice(index, index + this.maxSimultanousFetchSize);
     }
 
     async fetchWebPageContent(webPage) {
@@ -570,7 +598,8 @@ class Parser {
         await this.rateLimitDelay();
         ChapterUrlsUI.showDownloadState(webPage.row, ChapterUrlsUI.DOWNLOAD_STATE_DOWNLOADING);
         let pageParser = webPage.parser;
-        return pageParser.fetchChapter(webPage.sourceUrl).then((webPageDom) => {
+        try {
+            let webPageDom = await pageParser.fetchChapter(webPage.sourceUrl);
             delete webPage.error;
             webPage.rawDom = webPageDom;
             pageParser.preprocessRawDom(webPageDom);
@@ -581,7 +610,7 @@ class Parser {
                 throw new Error(errorMsg);
             }
             return pageParser.fetchImagesUsedInDocument(content, webPage);
-        }).catch((error) => {
+        } catch (error) {
             if (this.userPreferences.skipChaptersThatFailFetch.value) {
                 ErrorLog.log(error);
                 webPage.error = error;
@@ -589,24 +618,21 @@ class Parser {
                 webPage.isIncludeable = false;
                 throw error;
             }
-        }); 
+        }
     }
 
-    fetchImagesUsedInDocument(content, webPage) {
-        return this.imageCollector.preprocessImageTags(content, webPage.sourceUrl)
-            .then((revisedContent) => {
-                this.imageCollector.findImagesUsedInDocument(revisedContent);
-                return this.imageCollector.fetchImages(() => { }, webPage.sourceUrl);
-            }).then(() => {
-                this.updateLoadState(webPage);
-            });
+    async fetchImagesUsedInDocument(content, webPage) {
+        let revisedContent = await this.imageCollector.preprocessImageTags(content, webPage.sourceUrl);
+        this.imageCollector.findImagesUsedInDocument(revisedContent);
+        await this.imageCollector.fetchImages(() => { }, webPage.sourceUrl);
+        this.updateLoadState(webPage);
     }
 
-    /**
-    * default implementation
-    * derived classes override if need to do something to fetched DOM before
-    * normal processing steps
-    */
+    /*
+     * default implementation
+     * derived classes override if need to do something to fetched DOM before
+     * normal processing steps
+     */
     preprocessRawDom(webPageDom) { // eslint-disable-line no-unused-vars
     }
 
@@ -633,7 +659,7 @@ class Parser {
 
     // Hook point, when need to do something when "Pack EPUB" pressed
     onStartCollecting() {
-    }    
+    } 
 
     fixupHyperlinksInEpubItems(epubItems) {
         let targets = this.sourceUrlToEpubItemUrl(epubItems);
@@ -680,22 +706,12 @@ class Parser {
 
     makeHyperlinkAbsolute(link) {
         if (link.href !== link.getAttribute("href")) {
-            link.href = link.href;       // eslint-disable-line no-self-assign
+            link.href = link.href; // eslint-disable-line no-self-assign
         }
     }
 
     disabled() {
         return null;
-    }
-
-    /**
-     * limit number of pages to fetch at once 
-     * ignoing user preference.
-     * Some sites can't handle high load.  e.g. Comrademao
-     * @param {any} fetchSize
-     */
-    clampSimultanousFetchSize(fetchSize) {
-        return fetchSize;
     }
 
     tagAuthorNotes(elements) {
@@ -716,7 +732,7 @@ class Parser {
     static makeEmptyDocForContent(baseUrl) {
         let dom = document.implementation.createHTMLDocument("");
         if (baseUrl != null) {
-            util.setBaseTag(baseUrl, dom);        
+            util.setBaseTag(baseUrl, dom); 
         }
         let content = dom.createElement("div");
         content.className = Parser.WEB_TO_EPUB_CLASS_NAME;
@@ -731,7 +747,7 @@ class Parser {
         return dom.querySelector("div." + Parser.WEB_TO_EPUB_CLASS_NAME);
     }
 
-    async getChapterUrlsFromMultipleTocPages(dom, extractPartialChapterList, getUrlsOfTocPages, chapterUrlsUI)  {
+    async getChapterUrlsFromMultipleTocPages(dom, extractPartialChapterList, getUrlsOfTocPages, chapterUrlsUI) {
         let chapters = extractPartialChapterList(dom);
         let urlsOfTocPages = getUrlsOfTocPages(dom);
         return await this.getChaptersFromAllTocPages(chapters, extractPartialChapterList, urlsOfTocPages, chapterUrlsUI);
@@ -739,12 +755,7 @@ class Parser {
 
     getRateLimit()
     {
-        if (this.userPreferences.manualDelayPerChapter.value == "simulate_reading")
-        {
-            return this.userPreferences.manualDelayPerChapter.value;
-        }
-        let manualDelayPerChapterValue = parseInt(this.userPreferences.manualDelayPerChapter.value);
-
+        let manualDelayPerChapterValue = (!isNaN(parseInt(this.userPreferences.manualDelayPerChapter.value)))?parseInt(this.userPreferences.manualDelayPerChapter.value):this.minimumThrottle;
         if (!this.userPreferences.overrideMinimumDelay.value)
         {
             return Math.max(this.minimumThrottle, manualDelayPerChapterValue);
@@ -754,11 +765,10 @@ class Parser {
 
     async rateLimitDelay() {
         let manualDelayPerChapterValue = this.getRateLimit();
-        manualDelayPerChapterValue = (manualDelayPerChapterValue == "simulate_reading" )? util.randomInteger(420000,900000): manualDelayPerChapterValue;
         await util.sleep(manualDelayPerChapterValue);
     }
 
-    async getChaptersFromAllTocPages(chapters, extractPartialChapterList, urlsOfTocPages, chapterUrlsUI, wrapOptions)  {
+    async getChaptersFromAllTocPages(chapters, extractPartialChapterList, urlsOfTocPages, chapterUrlsUI, wrapOptions) {
         if (0 < chapters.length) {
             chapterUrlsUI.showTocProgress(chapters);
         }
@@ -817,7 +827,7 @@ class Parser {
             util.moveChildElements(newContent, oldContent);
         }
         return dom;
-    }    
+    } 
 }
 
 Parser.WEB_TO_EPUB_CLASS_NAME = "webToEpubContent";
