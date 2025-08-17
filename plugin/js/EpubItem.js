@@ -78,22 +78,22 @@ class EpubItem {
     }
 
     populateTitle(doc, body) {
-    let title = doc.querySelector("title");
-    let h1 = body.querySelector("h1");
+        let title = doc.querySelector("title");
+        let h1 = body.querySelector("h1");
     
-    if (util.isNullOrEmpty(title.textContent)) {
-        if (h1 !== null) {
+        if (util.isNullOrEmpty(title.textContent)) {
+            if (h1 !== null) {
             // Use h1 content if available
-            title.textContent = h1.textContent;
-        } else if (this.chapterTitle && !util.isNullOrEmpty(this.chapterTitle)) {
+                title.textContent = h1.textContent;
+            } else if (this.chapterTitle && !util.isNullOrEmpty(this.chapterTitle)) {
             // Fallback to chapter title
-            title.textContent = this.chapterTitle;
-        } else {
+                title.textContent = this.chapterTitle;
+            } else {
             // Final fallback to generic title
-            title.textContent = "Chapter";
+                title.textContent = "Chapter";
+            }
         }
     }
-}
 
     // convert type of heading element to nesting depth on Table of Contents
     // H1 = 0, H2 = 1, etc

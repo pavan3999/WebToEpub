@@ -40,19 +40,19 @@ class EpubItemSupplier { // eslint-disable-line no-unused-vars
     }
 
     makeCoverImageXhtmlFile(emptyDocFactory) {
-    let doc = emptyDocFactory();
-    let body = doc.getElementsByTagName("body");
-    let userPreferences = this.imageCollector.userPreferences;
+        let doc = emptyDocFactory();
+        let body = doc.getElementsByTagName("body");
+        let userPreferences = this.imageCollector.userPreferences;
     
-    // Set cover page title
-    let title = doc.querySelector("title");
-    if (title && util.isNullOrEmpty(title.textContent)) {
-        title.textContent = "Cover";
+        // Set cover page title
+        let title = doc.querySelector("title");
+        if (title && util.isNullOrEmpty(title.textContent)) {
+            title.textContent = "Cover";
+        }
+    
+        body.appendChild(this.coverImageInfo.createImageElement(userPreferences));
+        return util.xmlToString(doc);
     }
-    
-    body.appendChild(this.coverImageInfo.createImageElement(userPreferences));
-    return util.xmlToString(doc);
-}
 
     hasCoverImageFile() {
         return (this.coverImageInfo != null);
