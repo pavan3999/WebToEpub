@@ -18,9 +18,50 @@ class WuxiaworldParser extends Parser {
                 WuxiaworldParser.isChapterHref, WuxiaworldParser.getChapterArc);
             WuxiaworldParser.removeArcsWhenOnlyOne(chapters);
         }
-        if (0 == chapters.length) {
+        if (0 === chapters.length) {
             chapters = [...dom.querySelectorAll("li.chapter-item a")]
                 .map(link => util.hyperLinkToChapter(link));
+        }
+        if (0 === chapters.length) {
+            let novelUrlMatch = dom.baseURI.match(/wuxiaworld\.com\/novel\/([^/?#]+)/);
+            if (novelUrlMatch) {
+                let novelSlug = novelUrlMatch[1];
+                let searchArea = dom.body;
+                let links = [...searchArea.querySelectorAll("a")].filter(a => {
+                    let href = a.getAttribute("href");
+                    let isChapter = href && href.startsWith(`/novel/${novelSlug}/`) && href.length > `/novel/${novelSlug}/`.length;
+                    
+                    if (isChapter && a.classList.contains("group")) {
+                        let statusDiv = a.querySelector("div[role='status']");
+                        if (statusDiv && statusDiv.innerHTML.trim() !== "") {
+                            // If the status div has an SVG, check if it's a lock/wait icon.
+                            // If it's just a bookmark icon, we shouldn't filter it out.
+                            // Wuxiaworld wait icons usually have a clock, locked chapters have a lock.
+                            if (statusDiv.innerHTML.includes("svg") && !statusDiv.innerHTML.includes("bookmark")) {
+                                return false; // Filter locked/wait chapters
+                            }
+                        }
+                        return true;
+                    }
+                    return false;
+                });
+
+                let seen = new Set();
+                chapters = links.filter(a => {
+                    let href = a.href;
+                    if (seen.has(href)) return false;
+                    seen.add(href);
+                    return true;
+                }).map(a => {
+                    let titleSpan = a.querySelector(".font-set-sb16 span, .line-clamp-1 span");
+                    return {
+                        sourceUrl: a.href,
+                        title: titleSpan ? titleSpan.textContent.trim() : a.textContent.trim()
+                    };
+                });
+                
+                chapters.reverse();
+            }
         }
         return Promise.resolve(chapters);  
     }
@@ -47,6 +88,11 @@ class WuxiaworldParser extends Parser {
         
         let arc = parent.querySelector("span.title a");
         return arc == null ? null : arc.textContent.trim();
+    }
+
+    extractTitleImpl(dom) {
+        let titleNode = dom.querySelector("span[data-testid='title'], h4");
+        return titleNode ? titleNode.textContent.trim() : super.extractTitleImpl(dom);
     }
 
     static removeArcsWhenOnlyOne(chapters) {
@@ -84,11 +130,43 @@ class WuxiaworldParser extends Parser {
     }
 
     findChapterTitle(dom) {
+        let titleNode = dom.querySelector("h4[data-testid='heading'] span[data-testid='title'], h4[data-testid='heading']");
+        if (titleNode && titleNode.textContent.trim() !== "") {
+            return titleNode;
+        }
+        
+        // Fallback to extracting from the page <title> tag (React SSR returns empty skeletons for headings)
+        let docTitle = dom.querySelector("title");
+        if (docTitle && docTitle.textContent.includes(" - ")) {
+            let parts = docTitle.textContent.split(" - ");
+            let chapterTitle = parts.slice(1).join(" - ").trim();
+            if (chapterTitle) {
+                let h1 = dom.createElement("h1");
+                h1.textContent = chapterTitle;
+                return h1;
+            }
+        }
+        
         return dom.querySelector("div.caption h4");
     }
 
     findCoverImageUrl(dom) {
-        return util.getFirstImgSrc(dom, "div.novel-index");
+        let oldCover = util.getFirstImgSrc(dom, "div.novel-index");
+        if (oldCover) {
+            return oldCover;
+        }
+        let newCover = dom.querySelector("img[src*='/covers/']");
+        return newCover ? newCover.src : super.findCoverImageUrl(dom);
+    }
+
+    extractAuthor(dom) {
+        // Use a more specific selector to avoid scanning all divs on the page
+        let labels = [...dom.querySelectorAll("div.flex-row > div, div.text-gray-t3 > div")];
+        let authorLabel = labels.find(div => div.textContent.trim() === "Author:");
+        if (authorLabel && authorLabel.nextElementSibling) {
+            return authorLabel.nextElementSibling.textContent.trim();
+        }
+        return super.extractAuthor(dom);
     }
 
     getInformationEpubItemChildNodes(dom) {

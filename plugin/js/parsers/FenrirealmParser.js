@@ -30,7 +30,7 @@ class FenrirealmParser extends Parser {
     }
 
     findChapterTitle(dom) {
-        let titleText = dom.querySelector("h2").textContent;
+        let titleText = dom.querySelector("h2")?.textContent ?? "";
         return this.removeDuplicatedChapterPrefix(titleText);
     }
 
@@ -39,6 +39,12 @@ class FenrirealmParser extends Parser {
         return (parts.length >= 2) && (parts[0].trim() === parts[1].trim())
             ? parts.slice(1).join(":")
             : titleText;
+    }
+
+    removeUnwantedElementsFromContentElement(element) {
+        util.removeChildElementsMatchingSelector(element, "[style*='width:1px']");
+        util.removeChildElementsMatchingSelector(element, ".reader-attribution");
+        super.removeUnwantedElementsFromContentElement(element);
     }
 
     findCoverImageUrl(dom) {

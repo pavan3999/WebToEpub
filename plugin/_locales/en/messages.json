@@ -43,6 +43,10 @@
 		"message": "Add novels to Library",
 		"description": "Label on button to Add novels to Library in Library"
 	},
+	"__MSG_button_Lib_Template_Add_List_To_Library_Paused__": {
+		"message": "Add novels to Library paused",
+		"description": "Label on button to Add novels to Library in Library"
+	},
 	"__MSG_button_Lib_Template_Update_All__": {
 		"message": "Update all",
 		"description": "Label on button to Update all Epubs"
@@ -71,12 +75,16 @@
 		"message": "Edit Metadata",
 		"description": "Label on button to show edit options for metadata"
 	},
+	"__MSG_button_Lib_Template_Open_URL__": {
+		"message": "Open URL",
+		"description": "Label on button to open URL from Library book"
+	},
 	"__MSG_label_Lib_Template_Library_uses__": {
 		"message": "Library uses: ",
 		"description": "Label in front of the Bytes used in local Storage"
 	},
 	"__MSG_label_Lib_Template_New_Chapter__": {
-		"message": " new chapter",
+		"message": " new",
 		"description": "Label of x new chapter"
 	},
 	"__MSG_label_Lib_Template_Story_URL__": {
@@ -138,6 +146,10 @@
 	"__MSG_button_error_Open_URL__": {
 		"message": "Open URL for Captcha",
 		"description": "Label on 'Open URL for Captcha' button when show error HTTP 403"
+	},
+	"__MSG_button_error_Copy_URL__": {
+		"message": "Copy URL for Captcha",
+		"description": "Label on 'Copy URL for Captcha' button when show error HTTP 403"
 	},
 	"__MSG_button_error_Block_URL__": {
 		"message": "Block Website for future requests",
@@ -467,6 +479,10 @@
 		"message": "Skip chapters that return HTTP 404 error",
 		"description": "Label in front of checkbox for skipping chapters that can't be fetched"
 	},
+	"__MSG_label_No_Content_To_Error_403_Page__": {
+		"message": "Treat 'no content found error' as 'HTTP 403 error'.",
+		"description": "Label in front of checkbox for treating 'no content found' error as 'HTTP 403 error'"
+	},
 	"__MSG_label_Stylesheet__": {
 		"message": "Stylesheet:",
 		"description": "Label in front of edit field for setting the stylesheet (in Advanced settings)."
@@ -738,6 +754,10 @@
 		"message": "No images found",
 		"description": "Text put in images table when no images are found."
 	},
+	"errorMobileModeDetected": {
+		"message": "You use WebToEpub in the Mobile view please change the tab to the Desktop version.\nIn Firefox for Android ⋮-> Desktop site -> On\n\nThe website from which you start WebToEpub also needs to be in the Desktop view.",
+		"description": "Warning message when the user is in Mobile mode."
+	},
 	"noParserFound": {
 		"message": "No parser found for this URL.  Default parser will be used.  You will need to specify how to obtain content for each chapter.",
 		"description": "Warning message when can't figure out how to extract info from web page."
@@ -759,7 +779,7 @@
 		"description": "Internal message for developer."
 	},
 	"warning403ErrorResponse": {
-		"message": "WARNING: Site '$host$' has sent an Access Denied (403) error.\nYou may need to logon to site, or browse site normally\nuntil you get a Cloudflare \"Are you a human\" page or satisfy some other CAPTCHA\nbefore WebToEpub can continue.\nThis happens if you are downloading to fast try to increase 'Advanced Options -> Delay per chapter in ms'\n",
+		"message": "WARNING: Site '$host$' has sent an Access Denied (403) error.\nYou may need to logon to site, or browse site normally\nuntil you get a Cloudflare \"Are you a human\" page or satisfy some other CAPTCHA\nbefore WebToEpub can continue.\nThis happens if you are downloading too fast, try to increase 'Advanced Options -> Delay per chapter in ms'\n",
 		"description": "Warning message for user when site sends a 403 response.",
 		"placeholders": {
 			"host": {

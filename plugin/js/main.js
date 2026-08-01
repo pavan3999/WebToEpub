@@ -285,6 +285,12 @@ var main = (function() {
     }
 
     function setParser(url, dom) {
+        if (/Android|Mobile/i.test(navigator.userAgent)) {
+            // tab is opened in the mobile view
+            // need to discourage this as some websites send different content depending on the user-agent
+            ErrorLog.showErrorMessage(UIText.Error.errorMobileModeDetected);
+            return false;
+        }
         let manualSelect = getManuallySelectParserTag().value;
         if (util.isNullOrEmpty(manualSelect)) {
             parser = parserFactory.fetch(url, dom);
@@ -619,6 +625,17 @@ var main = (function() {
 
     // actions to do when window opened
     window.onload = async () => {
+        if (typeof DOMPurify === "undefined" || typeof zip === "undefined") {
+            let msg = "Error: WebToEpub is missing required third-party dependencies (DOMPurify or zip.js).\n\nIf you are running from a git clone, please run 'npm install' in the project root to fetch these dependencies.";
+            alert(msg);
+            let pleaseWait = document.getElementById("findingChapterUrlsMessageRow");
+            if (pleaseWait) {
+                pleaseWait.textContent = msg;
+                pleaseWait.style.color = "red";
+                pleaseWait.hidden = false;
+            }
+            return;
+        }
         userPreferences = UserPreferences.readFromLocalStorage();
         if (isRunningInTabMode()) { 
             ErrorLog.SuppressErrorLog =  false;
