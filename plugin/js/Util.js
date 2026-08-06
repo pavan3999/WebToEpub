@@ -55,19 +55,26 @@ const util = (function() {
         return (typeof (runtime) === "undefined") ? "unknown" : runtime.getManifest().version;
     }
 
-    function createEmptyXhtmlDoc() {
+    function createEmptyXhtmlDoc(titleText) {
         let doc = document.implementation.createDocument(XMLNS, "", null);
         addXhtmlDocTypeToStart(doc);
         let htmlNode = doc.createElementNS(XMLNS, "html");
         doc.appendChild(htmlNode);
         let head = doc.createElementNS(XMLNS, "head");
         htmlNode.appendChild(head);
-        head.appendChild(doc.createElementNS(XMLNS, "title"));
+    
+        let titleElement = doc.createElementNS(XMLNS, "title");
+        if (titleText && !isNullOrEmpty(titleText)) {
+            titleElement.textContent = titleText;
+        }
+        head.appendChild(titleElement);
+    
         populateHead(doc, head);
         let body = doc.createElementNS(XMLNS, "body");
         htmlNode.appendChild(body);
         return doc;
     }
+
 
     function populateHead(doc, head) {
         let style = doc.createElementNS(XMLNS, "link");
