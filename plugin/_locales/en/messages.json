@@ -267,6 +267,10 @@
 		"message": "Compress Images",
 		"description": "Label for checkbox and value to compress images to a certain size"
 	},
+	"__MSG_label_Compress_Images_Animated__": {
+		"message": "Compress Animated Images to single frame (GIF, APNG, WebP)",
+		"description": "Label for animated compression checkbox"
+	},
 	"__MSG_label_Compress_Images_JPG_Cover__": {
 		"message": "Restrict Cover Image to JPEG",
 		"description": "Label for JPEG cover restriction checkbox"
@@ -387,6 +391,10 @@
 		"message": "Publisher",
 		"description": "Label for Epub publisher"
 	},
+	"__MSG_label_Metadata_date_published__": {
+		"message": "Published",
+		"description": "Label for the original publication date"
+	},
 	"__MSG_label_Custom_Filename__": {
 		"message": "Custom Filename",
 		"description": "Custom Filename input"
@@ -502,6 +510,10 @@
 	"__MSG_label_Use_Full_Title_As_File_Name__": {
 		"message": "Use full title as file name",
 		"description": "Label in front of checkbox to choose if Epub's filename will be truncated or not."
+	},
+	"__MSG_label_Remove_Illegal_Character_From_Filename_On_Download__": {
+		"message": "Remove illegal characters from filename on download",
+		"description": "Label in front of checkbox to choose if Epub's filename will have it's illegal character removed or not."
 	},
 	"__MSG_label_Use_SVG_for_Images__": {
 		"message": "Use <svg> for images",

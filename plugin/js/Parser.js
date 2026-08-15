@@ -336,6 +336,13 @@ class Parser {
         return publisher?.content ?? "";
     }
 
+    extractDatePublished(dom) {
+        let published = dom.querySelector(
+            "meta[property='article:published_time'], time[itemprop='datePublished']"
+        );
+        return published?.content ?? published?.dateTime ?? null;
+    }
+
     /**
     * default implementation, Derived classes will override
     */
@@ -390,6 +397,12 @@ class Parser {
         }
         catch (err) {
             metaInfo.publisher = "";
+        }
+        try {
+            metaInfo.datePublished = this.extractDatePublished(dom);
+        }
+        catch (err) {
+            metaInfo.datePublished = null;
         }
         this.extractSeriesInfo(dom, metaInfo);
         return metaInfo;

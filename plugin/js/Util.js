@@ -27,6 +27,10 @@ const util = (function() {
         });
     }
 
+    function resetSleepController() {
+        sleepController = new AbortController;
+    }
+
     function randomInteger(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
@@ -459,7 +463,11 @@ const util = (function() {
     }
 
     function getFirstImgSrc(dom, selector) {
-        return dom.querySelector(selector)?.querySelector("img")?.src ?? null;
+        var element = dom.querySelector(selector);
+        if (element && (element.tagName !== "IMG")) {
+            element = element.querySelector("img");
+        }
+        return element?.src ?? null;
     }
 
     function extractHashFromUri(uri) {
@@ -1167,6 +1175,7 @@ const util = (function() {
         HEADER_TAGS: HEADER_TAGS,
         sleep: sleep,
         sleepController: sleepController,
+        resetSleepController: resetSleepController,
         randomInteger: randomInteger,
         isFirefox: isFirefox,
         extensionVersion: extensionVersion,

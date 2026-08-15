@@ -91,7 +91,8 @@ class EpubPacker {
         opf.documentElement.appendChild(metadata);
         this.createAndAppendChildNS(metadata, dc_ns, "dc:title", this.metaInfo.title);
         this.createAndAppendChildNS(metadata, dc_ns, "dc:language", this.metaInfo.language);
-        this.createAndAppendChildNS(metadata, dc_ns, "dc:date", this.getDateForMetaData());
+        let datePublished = this.metaInfo.datePublished || this.getDateForMetaData();
+        this.createAndAppendChildNS(metadata, dc_ns, "dc:date", datePublished);
         // ----- SUBJECTS (support multiple) -----
         if (!util.isNullOrEmpty(this.metaInfo.subject)) {
             let subjects = this.metaInfo.subject;
@@ -162,6 +163,14 @@ class EpubPacker {
         if (this.metaInfo.seriesName !== null) {
             this.appendMetaContent(metadata, opf_ns, "calibre:series", this.metaInfo.seriesName);
             this.appendMetaContent(metadata, opf_ns, "calibre:series_index", this.metaInfo.seriesIndex);
+            if (this.version === EpubPacker.EPUB_VERSION_3) {
+                let series = this.createAndAppendChildNS(metadata, opf_ns, "meta");
+                series.setAttributeNS(null, "property", "belongs-to-collection");
+                series.setAttributeNS(null, "id", "series");
+                series.textContent = this.metaInfo.seriesName;
+                this.addMetaProperty(metadata, series, "collection-type", "series", "series");
+                this.addMetaProperty(metadata, series, "group-position", "series", this.metaInfo.seriesIndex);
+            }
         }
 
         for (let i of epubItemSupplier.manifestItems()) {
