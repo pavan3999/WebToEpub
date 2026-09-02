@@ -110,6 +110,10 @@ class EpubMetaInfo {
         "   text-transform: uppercase;\r" +
         "}\r" +
 
+        "p:has(> img:only-child) {\r" +
+        "   text-indent: 0;\r" +
+        "}\r" +
+
         "h1 + p::first-letter,\r" +
         "h2 + p::first-letter,\r" +
         "h3 + p::first-letter,\r" +
