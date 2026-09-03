@@ -207,6 +207,9 @@ class Parser {
     }
 
     populateUI(dom) {
+        let versionElement = document.getElementById("spanExtensionVersion");
+        versionElement.textContent = `WebToEpub v${util.extensionVersion()}`;
+
         CoverImageUI.showCoverImageUrlInput(true);
         let coverUrl = this.findCoverImageUrl(dom);
         CoverImageUI.setCoverImageUrl(coverUrl);
@@ -598,7 +601,7 @@ class Parser {
                 await Promise.all(group.map(async (webPage) => this.fetchWebPageContent(webPage)));
                 index += group.length;
                 group = this.groupPagesToFetch(pagesToFetch, index);
-                if (util.sleepController.signal.aborted) {
+                if (util.getSleepController().signal.aborted) {
                     break;
                 }
             }
@@ -791,7 +794,7 @@ class Parser {
         };
     }
 
-    static findConstrutedContent(dom) {
+    static findConstructedContent(dom) {
         return dom.querySelector("div." + Parser.WEB_TO_EPUB_CLASS_NAME);
     }
 
