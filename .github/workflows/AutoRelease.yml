@@ -34,7 +34,7 @@ jobs:
       shell: cmd
       run: |
         set version=${{ github.event.inputs.version }}
-        Get-Command "jq.exe"
+        where jq.exe
         jq.exe --version
 
         echo do some git configuration
