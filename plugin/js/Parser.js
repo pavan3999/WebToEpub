@@ -506,37 +506,27 @@ class Parser {
         let rootList = document.createElement("ol");
         section.appendChild(rootList);
 
-        // chapterInfo() is the same source used for the EPUB's normal NCX/nav
-        // TOC, so titles, arcs and nesting stay consistent.
-        let currentLists = [rootList];
+        // The Information-page TOC is intentionally flat. The normal EPUB
+        // navigation can contain nested levels (for example, an arc followed
+        // by its chapters), but this visible TOC should show every chapter as
+        // a simple, easy-to-use list.
         for (let item of epubItems) {
             for (let chapterInfo of item.chapterInfo()) {
-                let depth = Math.max(0, chapterInfo.depth);
-
-                // Create missing nesting levels.
-                while (currentLists.length <= depth) {
-                    let parentList = currentLists[currentLists.length - 1];
-                    let lastLi = parentList.lastElementChild;
-                    if (!lastLi) {
-                        break;
-                    }
-                    let nestedList = document.createElement("ol");
-                    lastLi.appendChild(nestedList);
-                    currentLists.push(nestedList);
-                }
-
-                // If the source jumps back more than one level, use the
-                // closest available level rather than creating invalid markup.
-                let listDepth = Math.min(depth, currentLists.length - 1);
-                currentLists.length = listDepth + 1;
-                let list = currentLists[listDepth];
-
                 let listItem = document.createElement("li");
                 let chapterLink = document.createElement("a");
-                chapterLink.href = this.informationPageRelativeHref(chapterInfo.src);
+
+                // Information.xhtml and chapter XHTML files are both stored
+                // in OEBPS/Text, so the chapter filename is the correct
+                // relative target.
+                chapterLink.setAttribute(
+                    "href",
+                    this.informationPageRelativeHref(chapterInfo.src)
+                );
+                chapterLink.classList.add("webToEpub-information-toc-link");
                 chapterLink.textContent = chapterInfo.title;
+
                 listItem.appendChild(chapterLink);
-                list.appendChild(listItem);
+                rootList.appendChild(listItem);
             }
         }
 
@@ -777,7 +767,10 @@ class Parser {
     fixupHyperlinksInEpubItems(epubItems) {
         let targets = this.sourceUrlToEpubItemUrl(epubItems);
         for (let item of epubItems) {
-            for (let link of item.getHyperlinks().filter(this.isUnresolvedHyperlink).filter(link => !link.classList.contains("webToEpub-table-of-content-url"))) {
+            for (let link of item.getHyperlinks()
+                .filter(this.isUnresolvedHyperlink)
+                .filter(link => !link.classList.contains("webToEpub-table-of-content-url"))
+                .filter(link => !link.classList.contains("webToEpub-information-toc-link"))) {
                 if (!this.hyperlinkToEpubItemUrl(link, targets)) {
                     this.makeHyperlinkAbsolute(link);
                 }
