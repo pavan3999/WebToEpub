@@ -440,13 +440,9 @@ class Parser {
 
     webPagesToEpubItems(webPages) {
         let epubItems = [];
-        let index = 0;
-
-        if (this.userPreferences.addInformationPage.value &&
-            this.getInformationEpubItemChildNodes !== undefined) {
-            epubItems.push(this.makeInformationEpubItem(this.state.firstPageDom));
-            ++index;
-        }
+        // Reserve index 0 for the Information page when it is enabled.
+        let index = (this.userPreferences.addInformationPage.value &&
+            this.getInformationEpubItemChildNodes !== undefined) ? 1 : 0;
 
         for (let webPage of webPages.filter(c => this.isWebPagePackable(c))) {
             let newItems = (webPage.error == null)
@@ -456,10 +452,17 @@ class Parser {
             index += newItems.length;
             delete(webPage.rawDom);
         }
+
+        if (this.userPreferences.addInformationPage.value &&
+            this.getInformationEpubItemChildNodes !== undefined) {
+            // Build the Information page after the chapter items exist so the
+            // visible TOC can link to their final EPUB filenames.
+            epubItems.unshift(this.makeInformationEpubItem(this.state.firstPageDom, epubItems));
+        }
         return epubItems;
     }
 
-    makeInformationEpubItem(dom) {
+    makeInformationEpubItem(dom, epubItems) {
         let titleText = UIText.Default.informationPageTitle;
         let title = document.createElement("h1");
         title.appendChild(document.createTextNode(titleText));
@@ -474,15 +477,80 @@ class Parser {
         link.textContent = this.state.chapterListUrl;
         urlElement.appendChild(link);
         div.appendChild(urlElement);
+
         let infoDiv = document.createElement("div");
-        this.populateInfoDiv(infoDiv, dom);    
-        let childNodes = [title, div, infoDiv];
+        this.populateInfoDiv(infoDiv, dom);
+
+        // Add a visible, clickable Table of Contents immediately after the
+        // description/information content. This is part of the existing
+        // Information chapter; no separate toc.xhtml is created for it.
+        let toc = this.makeInformationPageTableOfContents(epubItems);
+
+        let childNodes = [title, div, infoDiv, toc];
         let chapter = {
             sourceUrl: this.state.chapterListUrl,
             title: titleText,
             newArch: null
         };
         return new ChapterEpubItem(chapter, {childNodes: childNodes}, 0);
+    }
+
+    makeInformationPageTableOfContents(epubItems) {
+        let section = document.createElement("section");
+        section.classList.add("webToEpub-information-toc");
+
+        let heading = document.createElement("h2");
+        heading.textContent = "Table of Contents";
+        section.appendChild(heading);
+
+        let rootList = document.createElement("ol");
+        section.appendChild(rootList);
+
+        // chapterInfo() is the same source used for the EPUB's normal NCX/nav
+        // TOC, so titles, arcs and nesting stay consistent.
+        let currentLists = [rootList];
+        for (let item of epubItems) {
+            for (let chapterInfo of item.chapterInfo()) {
+                let depth = Math.max(0, chapterInfo.depth);
+
+                // Create missing nesting levels.
+                while (currentLists.length <= depth) {
+                    let parentList = currentLists[currentLists.length - 1];
+                    let lastLi = parentList.lastElementChild;
+                    if (!lastLi) {
+                        break;
+                    }
+                    let nestedList = document.createElement("ol");
+                    lastLi.appendChild(nestedList);
+                    currentLists.push(nestedList);
+                }
+
+                // If the source jumps back more than one level, use the
+                // closest available level rather than creating invalid markup.
+                let listDepth = Math.min(depth, currentLists.length - 1);
+                currentLists.length = listDepth + 1;
+                let list = currentLists[listDepth];
+
+                let listItem = document.createElement("li");
+                let chapterLink = document.createElement("a");
+                chapterLink.href = this.informationPageRelativeHref(chapterInfo.src);
+                chapterLink.textContent = chapterInfo.title;
+                listItem.appendChild(chapterLink);
+                list.appendChild(listItem);
+            }
+        }
+
+        if (rootList.childElementCount === 0) {
+            section.remove();
+        }
+        return section;
+    }
+
+    informationPageRelativeHref(href) {
+        // Information.xhtml and chapter XHTML files are both stored in
+        // OEBPS/Text, so only the filename is needed for a relative link.
+        const textPrefix = "OEBPS/Text/";
+        return href.startsWith(textPrefix) ? href.substring(textPrefix.length) : href;
     }
 
     populateInfoDiv(infoDiv, dom) {
