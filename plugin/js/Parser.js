@@ -492,7 +492,9 @@ class Parser {
             title: titleText,
             newArch: null
         };
-        return new ChapterEpubItem(chapter, {childNodes: childNodes}, 0);
+        let informationItem = new ChapterEpubItem(chapter, {childNodes: childNodes}, 0);
+        informationItem.isInformationPage = true;
+        return informationItem;
     }
 
     makeInformationPageTableOfContents(epubItems) {
