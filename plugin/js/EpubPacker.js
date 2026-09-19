@@ -28,6 +28,10 @@ class EpubPacker {
         this.contentValidator = xml => util.isXhtmlInvalid(xml, contentType);
     }
 
+    static visibleTableOfContentsHref() {
+        return "OEBPS/Text/TableOfContents.xhtml";
+    }
+
     static coverImageXhtmlHref() {
         return "OEBPS/Text/Cover.xhtml";
     }
@@ -38,12 +42,21 @@ class EpubPacker {
 
     assemble(epubItemSupplier) {
         let zipFileWriter = new zip.BlobWriter("application/epub+zip");
-        let zipWriter = new zip.ZipWriter(zipFileWriter,{useWebWorkers: false,compressionMethod: 8, extendedTimestamp: false});
+        let zipWriter = new zip.ZipWriter(zipFileWriter, {useWebWorkers: false, compressionMethod: 8, extendedTimestamp: false});
         this.addRequiredFiles(zipWriter);
         zipWriter.add("OEBPS/content.opf", new zip.TextReader(this.buildContentOpf(epubItemSupplier)));
         zipWriter.add("OEBPS/toc.ncx", new zip.TextReader(this.buildTableOfContents(epubItemSupplier)));
         if (this.version === EpubPacker.EPUB_VERSION_3) {
+            // EPUB 3 Navigation Document. This is navigation metadata/UI and is
+            // deliberately kept separate from the normal reading-order TOC page.
             zipWriter.add("OEBPS/toc.xhtml", new zip.TextReader(this.buildNavigationDocument(epubItemSupplier)));
+        }
+        if (!epubItemSupplier.hasInformationPage()) {
+            // Always create a normal reading-order TOC page when there is no
+            // Information page. Keeping it in OEBPS/Text makes it behave like
+            // an ordinary XHTML chapter in EPUB 2 and EPUB 3 readers.
+            zipWriter.add(EpubPacker.visibleTableOfContentsHref(),
+                new zip.TextReader(this.buildVisibleTableOfContents(epubItemSupplier)));
         }
         this.packContentFiles(zipWriter, epubItemSupplier);
         zipWriter.add(util.styleSheetFileName(), new zip.TextReader(this.metaInfo.styleSheet));
@@ -57,7 +70,7 @@ class EpubPacker {
 
     // every EPUB must have a mimetype and a container.xml file
     addRequiredFiles(zipFile) {
-        zipFile.add("mimetype",  new zip.TextReader("application/epub+zip"),{compressionMethod: 0});
+        zipFile.add("mimetype", new zip.TextReader("application/epub+zip"),{compressionMethod: 0});
         zipFile.add("META-INF/container.xml",
             new zip.TextReader("<?xml version=\"1.0\"?>" +
             "<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">" +
@@ -161,7 +174,7 @@ class EpubPacker {
         if (this.version === EpubPacker.EPUB_VERSION_3) {
             element.setAttributeNS(null, "id", id);
             let meta = this.createAndAppendChildNS(metadata, opf_ns, "meta");
-            meta.setAttributeNS(null, "refines", "#" +id);
+            meta.setAttributeNS(null, "refines", "#" + id);
             meta.setAttributeNS(null, "property", propName);
             meta.textContent = value;
         } else {
@@ -177,7 +190,7 @@ class EpubPacker {
         meta.setAttributeNS(null, "name", name);
         meta.setAttributeNS(null, "content", content);
     }
-    
+
     buildManifest(opf, ns, epubItemSupplier) {
         let manifest = this.createAndAppendChildNS(opf.documentElement, ns, "manifest");
         for (let i of epubItemSupplier.manifestItems()) {
@@ -194,6 +207,12 @@ class EpubPacker {
         if (this.version === EpubPacker.EPUB_VERSION_3) {
             let item = this.addManifestItem(manifest, ns, "OEBPS/toc.xhtml", "nav", "application/xhtml+xml");
             item.setAttributeNS(null, "properties", "nav");
+        }
+        if (!epubItemSupplier.hasInformationPage()) {
+            // This is the visible TOC reading-order page. It is separate from
+            // the EPUB 3 Navigation Document when building EPUB 3.
+            this.addManifestItem(manifest, ns, EpubPacker.visibleTableOfContentsHref(),
+                "toc-page", "application/xhtml+xml");
         }
     }
 
@@ -230,6 +249,11 @@ class EpubPacker {
         spine.setAttributeNS(null, "toc", "ncx");
         if (epubItemSupplier.hasCoverImageFile()) {
             this.addSpineItemRef(spine, ns, EpubPacker.coverImageXhtmlId());
+        }
+        if (!epubItemSupplier.hasInformationPage()) {
+            // The visible TOC is a normal reading-order XHTML document for both
+            // EPUB versions. EPUB 3's nav document remains outside the spine.
+            this.addSpineItemRef(spine, ns, "toc-page");
         }
         for (let item of epubItemSupplier.spineItems()) {
             this.addSpineItemRef(spine, ns, item.getId());
@@ -271,13 +295,100 @@ class EpubPacker {
         navDoc.documentElement.setAttribute("lang", this.metaInfo.language);
         let head = this.createAndAppendChildNS(navDoc.documentElement, ns, "head");
         this.createAndAppendChildNS(head, ns, "title").textContent = "Table of Contents";
+        let style = this.createAndAppendChildNS(head, ns, "link");
+        style.setAttributeNS(null, "href", this.makeRelative(util.styleSheetFileName()));
+        style.setAttributeNS(null, "type", "text/css");
+        style.setAttributeNS(null, "rel", "stylesheet");
         this.addDocType(navDoc);
         let body = this.createAndAppendChildNS(navDoc.documentElement, ns, "body");
         let nav = this.createAndAppendChildNS(body, ns, "nav");
         nav.setAttribute("epub:type", "toc");
         nav.setAttribute("id", "toc");
-        this.populateNavElement(nav, ns, epubItemSupplier);
+
+        // When there is no Information page, the visible TableOfContents.xhtml
+        // is a normal reading-order document. It must also be exposed through
+        // EPUB 3's Navigation Document so readers that build their "Go to..."
+        // list exclusively from toc.xhtml can see it.
+        let rootList = this.createAndAppendChildNS(nav, ns, "ol");
+        if (!epubItemSupplier.hasInformationPage()) {
+            let tocItem = this.createAndAppendChildNS(rootList, ns, "li");
+            let tocLink = this.createAndAppendChildNS(tocItem, ns, "a");
+            tocLink.setAttributeNS(null, "href", this.makeRelative(EpubPacker.visibleTableOfContentsHref()));
+            tocLink.textContent = "Table of Contents";
+        }
+
+        this.populateNavElement(nav, ns, epubItemSupplier, rootList);
         return util.xmlToString(navDoc);
+    }
+
+    buildVisibleTableOfContents(epubItemSupplier) {
+        // This XHTML file is stored in OEBPS/Text, so its stylesheet and chapter
+        // links are both relative to that directory. It is intentionally a
+        // normal reading-order document, separate from EPUB 3's nav.xhtml.
+        let doc = util.createEmptyXhtmlDoc();
+        let body = doc.getElementsByTagName("body")[0];
+        doc.querySelector("title").textContent = "Table of Contents";
+
+        // createEmptyXhtmlDoc() already adds one stylesheet link. Because this
+        // document lives in OEBPS/Text, correct that existing link to the
+        // Text/ -> Styles/ relative path instead of adding a second link.
+        let style = doc.getElementsByTagName("head")[0].querySelector("link[rel='stylesheet']");
+        if (style != null) {
+            style.setAttributeNS(null, "href", "../Styles/stylesheet.css");
+        }
+
+        let section = doc.createElementNS("http://www.w3.org/1999/xhtml", "section");
+        section.setAttributeNS(null, "class", "webToEpub-information-toc");
+
+        let title = doc.createElementNS("http://www.w3.org/1999/xhtml", "h1");
+        title.textContent = "Table of Contents";
+        section.appendChild(title);
+
+        let list = doc.createElementNS("http://www.w3.org/1999/xhtml", "ol");
+        section.appendChild(list);
+        this.populateVisibleTocList(list, doc, epubItemSupplier);
+        body.appendChild(section);
+        return util.xmlToString(doc);
+    }
+
+    populateVisibleTocList(rootList, doc, epubItemSupplier) {
+        let parents = new NavPointParentElementsStack(rootList);
+        for (let chapterInfo of epubItemSupplier.chapterInfo()) {
+            let parent = parents.findParentElement(chapterInfo.depth);
+            let li = doc.createElementNS("http://www.w3.org/1999/xhtml", "li");
+            let link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a");
+            link.setAttributeNS(null, "href", this.makeRelativeForVisibleToc(chapterInfo.src));
+            link.setAttributeNS(null, "class", "webToEpub-information-toc-link");
+            link.textContent = chapterInfo.title;
+            li.appendChild(link);
+            parent.appendChild(li);
+            let nextLevel = doc.createElementNS("http://www.w3.org/1999/xhtml", "ol");
+            li.appendChild(nextLevel);
+            parents.addElement(chapterInfo.depth, nextLevel);
+        }
+        this.removeEmptyNavLists(rootList);
+    }
+
+    makeRelativeForVisibleToc(href) {
+        const textPrefix = "OEBPS/Text/";
+        return href.startsWith(textPrefix) ? href.substring(textPrefix.length) : this.makeRelative(href);
+    }
+
+    populateNavList(rootList, doc, epubItemSupplier) {
+        let parents = new NavPointParentElementsStack(rootList);
+        for (let chapterInfo of epubItemSupplier.chapterInfo()) {
+            let parent = parents.findParentElement(chapterInfo.depth);
+            let li = doc.createElementNS("http://www.w3.org/1999/xhtml", "li");
+            let link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a");
+            link.setAttributeNS(null, "href", this.makeRelative(chapterInfo.src));
+            link.textContent = chapterInfo.title;
+            li.appendChild(link);
+            parent.appendChild(li);
+            let nextLevel = doc.createElementNS("http://www.w3.org/1999/xhtml", "ol");
+            li.appendChild(nextLevel);
+            parents.addElement(chapterInfo.depth, nextLevel);
+        }
+        this.removeEmptyNavLists(rootList);
     }
 
     addDocType(navDoc) {
@@ -297,8 +408,8 @@ class EpubPacker {
         this.createAndAppendChildNS(docTitle, ns, "text", this.metaInfo.title);
     }
 
-    populateNavElement(nav, ns, epubItemSupplier) {
-        let rootParent = this.createAndAppendChildNS(nav, ns, "ol");
+    populateNavElement(nav, ns, epubItemSupplier, existingRootList = null) {
+        let rootParent = existingRootList || this.createAndAppendChildNS(nav, ns, "ol");
         let parents = new NavPointParentElementsStack(rootParent);
         for (let chapterInfo of epubItemSupplier.chapterInfo()) {
             let parent = parents.findParentElement(chapterInfo.depth);
@@ -330,6 +441,14 @@ class EpubPacker {
         let playOrder = 0;
         let id = 0;
         let lastChapterSrc = null;
+        if (!epubItemSupplier.hasInformationPage()) {
+            let tocInfo = {
+                depth: 0,
+                title: "Table of Contents",
+                src: EpubPacker.visibleTableOfContentsHref()
+            };
+            this.buildNavPoint(navMap, ns, ++playOrder, ++id, tocInfo);
+        }
         for (let chapterInfo of epubItemSupplier.chapterInfo()) {
             let parent = parents.findParentElement(chapterInfo.depth);
             if (lastChapterSrc !== chapterInfo.src) {
