@@ -38,7 +38,7 @@ class EpubPacker {
 
     assemble(epubItemSupplier) {
         let zipFileWriter = new zip.BlobWriter("application/epub+zip");
-        let zipWriter = new zip.ZipWriter(zipFileWriter,{useWebWorkers: false,compressionMethod: 8, extendedTimestamp: false});
+        let zipWriter = new zip.ZipWriter(zipFileWriter, {useWebWorkers: false, compressionMethod: 8, extendedTimestamp: false});
         this.addRequiredFiles(zipWriter);
         zipWriter.add("OEBPS/content.opf", new zip.TextReader(this.buildContentOpf(epubItemSupplier)));
         zipWriter.add("OEBPS/toc.ncx", new zip.TextReader(this.buildTableOfContents(epubItemSupplier)));
@@ -57,7 +57,7 @@ class EpubPacker {
 
     // every EPUB must have a mimetype and a container.xml file
     addRequiredFiles(zipFile) {
-        zipFile.add("mimetype",  new zip.TextReader("application/epub+zip"),{compressionMethod: 0});
+        zipFile.add("mimetype", new zip.TextReader("application/epub+zip"),{compressionMethod: 0});
         zipFile.add("META-INF/container.xml",
             new zip.TextReader("<?xml version=\"1.0\"?>" +
             "<container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">" +
@@ -93,11 +93,37 @@ class EpubPacker {
         this.createAndAppendChildNS(metadata, dc_ns, "dc:language", this.metaInfo.language);
         let datePublished = this.metaInfo.datePublished || this.getDateForMetaData();
         this.createAndAppendChildNS(metadata, dc_ns, "dc:date", datePublished);
+        // ----- SUBJECTS (support multiple) -----
         if (!util.isNullOrEmpty(this.metaInfo.subject)) {
-            this.createAndAppendChildNS(metadata, dc_ns, "dc:subject", this.metaInfo.subject);
+            let subjects = this.metaInfo.subject;
+
+            // if string, split by comma
+            if (!Array.isArray(subjects)) {
+                subjects = subjects.split(",").map(s => s.trim()).filter(Boolean);
+            }
+
+            subjects.forEach(sub => {
+                this.createAndAppendChildNS(metadata, dc_ns, "dc:subject", sub);
+            });
         }
+
+        // ----- DESCRIPTION (HTML paragraph formatting) -----
         if (!util.isNullOrEmpty(this.metaInfo.description)) {
-            this.createAndAppendChildNS(metadata, dc_ns, "dc:description", this.metaInfo.description);
+            let desc = this.metaInfo.description;
+
+            // escape XML
+            desc = desc
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
+            // paragraph formatting
+            let parts = desc.split(/\n\s*\n/);
+            let formatted = parts
+                .map(p => `<p>${p.trim().replace(/\n/g, "<br/>")}</p>`)
+                .join("\n");
+
+            this.createAndAppendChildNS(metadata, dc_ns, "dc:description", formatted);
         }
         if (!util.isNullOrEmpty(this.metaInfo.publisher)) {
             this.createAndAppendChildNS(metadata, dc_ns, "dc:publisher", this.metaInfo.publisher);
@@ -161,7 +187,7 @@ class EpubPacker {
         if (this.version === EpubPacker.EPUB_VERSION_3) {
             element.setAttributeNS(null, "id", id);
             let meta = this.createAndAppendChildNS(metadata, opf_ns, "meta");
-            meta.setAttributeNS(null, "refines", "#" +id);
+            meta.setAttributeNS(null, "refines", "#" + id);
             meta.setAttributeNS(null, "property", propName);
             meta.textContent = value;
         } else {
@@ -177,7 +203,7 @@ class EpubPacker {
         meta.setAttributeNS(null, "name", name);
         meta.setAttributeNS(null, "content", content);
     }
-    
+
     buildManifest(opf, ns, epubItemSupplier) {
         let manifest = this.createAndAppendChildNS(opf.documentElement, ns, "manifest");
         for (let i of epubItemSupplier.manifestItems()) {
@@ -357,8 +383,52 @@ class EpubPacker {
             file.packInEpub(zipWriter, this.emptyDocFactory, this.contentValidator);
         }
         if (epubItemSupplier.hasCoverImageFile()) {
-            let fileContent = epubItemSupplier.makeCoverImageXhtmlFile(this.emptyDocFactory, "Cover");
-            zipWriter.add(EpubPacker.coverImageXhtmlHref(), new zip.TextReader(fileContent));
+            let fileContent =
+                epubItemSupplier.makeCoverImageXhtmlFile(this.emptyDocFactory, "Cover");
+
+            // inject title under cover (SAFE XHTML VERSION)
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(fileContent, "application/xml");
+
+                const body = doc.getElementsByTagName("body")[0];
+                if (body) {
+                    const xhtmlNS = "http://www.w3.org/1999/xhtml";
+
+                    // outer wrapper (vertical centering engine)
+                    const wrapper = doc.createElementNS(xhtmlNS, "div");
+                    wrapper.setAttribute("class", "cover-page");
+
+                    // inner wrapper (content box)
+                    const inner = doc.createElementNS(xhtmlNS, "div");
+                    inner.setAttribute("class", "cover-page-inner");
+
+                    // move original nodes safely
+                    while (body.firstChild) {
+                        inner.appendChild(body.firstChild);
+                    }
+
+                    // only add title if it exists
+                    if (this.metaInfo.title) {
+                        const title = doc.createElementNS(xhtmlNS, "h1");
+                        title.setAttribute("class", "cover-title");
+                        title.textContent = this.metaInfo.title;
+                        inner.appendChild(title);
+                    }
+
+                    wrapper.appendChild(inner);
+                    body.appendChild(wrapper);
+
+                    fileContent = new XMLSerializer().serializeToString(doc);
+                }
+            } catch (e) {
+                console.warn("Cover title injection failed:", e);
+            }
+
+            zipWriter.add(
+                EpubPacker.coverImageXhtmlHref(),
+                new zip.TextReader(fileContent)
+            );
         }
     }
 

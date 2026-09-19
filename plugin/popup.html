@@ -280,7 +280,7 @@
                         <button id="loadMetadataButton">__MSG_button_load_Metadata__</button></td>
                     </tr>
                     <tr>
-                        <td><input id="noAdditionalMetadataCheckbox" type="checkbox" name="noAdditionalMetadataCheckbox" checked="true"></td>
+                        <td><input id="noAdditionalMetadataCheckbox" type="checkbox" name="noAdditionalMetadataCheckbox" checked="false"></td>
                         <td>__MSG_label_no_additional_metadata__</td>
                     </tr>
                     <tr>
@@ -288,7 +288,7 @@
                         <td>__MSG_label_auto_search_metadata__</td>
                     </tr>
                     <tr>
-                        <td><input id="lesstagsCheckbox" type="checkbox" name="lesstagsCheckbox" value="true"></td>
+                        <td><input id="lesstagsCheckbox" type="checkbox" name="lesstagsCheckbox" value="false"></td>
                         <td>__MSG_label_less_tags__</td>
                     </tr>
                     <tr>
@@ -353,11 +353,11 @@
                         <td><button id="stylesheetToDefaultButton">__MSG_button_Reset_stylesheet__</button></td>
                     </tr>
                     <tr id="skipImagesRow">
-                        <td><input id="skipImagesCheckbox" type="checkbox" name="skipImagesCheckbox" value="true"></td>
+                        <td><input id="skipImagesCheckbox" type="checkbox" name="skipImagesCheckbox" value="false"></td>
                         <td>__MSG_label_Skip_Images__</td>
                     </tr>
                     <tr id="includeImageSourceUrlRow">
-                        <td><input id="includeImageSourceUrlCheckboxInput" type="checkbox" name="includeImageSourceUrlCheckboxInput" value="true"></td>
+                        <td><input id="includeImageSourceUrlCheckboxInput" type="checkbox" name="includeImageSourceUrlCheckboxInput" value="false"></td>
                         <td>__MSG_label_Include_URL_of_Images__</td>
                     </tr>
                     <tr id="highestResolutionImagesRow" hidden="true">
@@ -431,7 +431,7 @@
                         <td><button id="resetButton">__MSG_button_Reset__</button></td>
                     </tr>
                     <tr id="noDownloadPopupFileRow">
-                        <td><input id="noDownloadPopupCheckbox" type="checkbox" name="noDownloadPopupCheckbox" value="false"></td>
+                        <td><input id="noDownloadPopupCheckbox" type="checkbox" name="noDownloadPopupCheckbox" value="true"></td>
                         <td>__MSG_label_No_Download_Popup__</td>
                     </tr>
                     <tr id="disableShiftClickAlertRow">
@@ -447,15 +447,15 @@
                       <td>__MSG_label_Disable_Webp_Image_Format_Error__</td>
                     </tr>
                     <tr id="writeErrorHistoryToFileRow">
-                        <td><input id="writeErrorHistoryToFileCheckbox" type="checkbox" name="writeErrorHistoryToFileCheckbox" value="false"></td>
+                        <td><input id="writeErrorHistoryToFileCheckbox" type="checkbox" name="writeErrorHistoryToFileCheckbox" value="true"></td>
                         <td>__MSG_label_Write_Error_History_To_File__</td>
                     </tr>
                     <tr id="createEpub3FileRow">
-                        <td><input id="createEpub3Checkbox" type="checkbox" name="createEpub3Checkbox" value="false"></td>
+                        <td><input id="createEpub3Checkbox" type="checkbox" name="createEpub3Checkbox" value="true"></td>
                         <td>__MSG_label_Create_Epub_3__</td>
                     </tr>
                     <tr id="useFullTitleAsFileName">
-                        <td><input id="useFullTitleAsFileNameCheckbox" type="checkbox" name="useFullTitleAsFileNameCheckbox" value="false"></td>
+                        <td><input id="useFullTitleAsFileNameCheckbox" type="checkbox" name="useFullTitleAsFileNameCheckbox" value="true"></td>
                         <td>__MSG_label_Use_Full_Title_As_File_Name__</td>
                     </tr>
                     <tr id="removeIllegalCharacterFromFilenameOnDownload">
@@ -479,8 +479,21 @@
                         <td>__MSG_label_Auto_Parser_Select_Includes_Baka_Tsuki_Series_Page_Parser__</td>
                         <td><button id="seriesPageHelpButton">__MSG_button_Help__</button></td>
                     </tr>
+                    <tr id="maxPagesToFetchSimultaneously">
+                        <td>
+                            <select id="maxPagesToFetchSimultaneouslyTag">
+                                <option value="1" selected>1</option>
+                                <option value="2">2</option>
+                                <option value="4">4</option>
+                                <option value="8">8</option>
+                                <option value="16">16</options>
+                                <option value="32">32</options>
+                            </select>
+                        </td>
+                        <td>__MSG_label_Max_pages_to_fetch_simultaneously__</td>
+                    </tr>
                     <tr id="skipChaptersThatFailFetch">
-                        <td><input id="skipChaptersThatFailFetchCheckbox" type="checkbox" name="skipChaptersThatFailFetchCheckbox" value="false"></td>
+                        <td><input id="skipChaptersThatFailFetchCheckbox" type="checkbox" name="skipChaptersThatFailFetchCheckbox" value="true"></td>
                         <td>__MSG_label_Skip_Chapters_That_Fail_Fetch__</td>
                     </tr>
                     <tr id="noContentToError403">
@@ -501,12 +514,29 @@
                         </td>
                         <td>__MSG_label_Max_chapters_per_epub__</td>
                     </tr>
+                </table>
+                <table id="ThrottleTable">
                     <tr id="manualDelayPerChapter">
                         <td>
-                            <input id="manualDelayPerChapterTag" type="number" name="manualDelayPerChapterTag" style="width: 61px;" inputmode="decimal">
+                            <select id="manualDelayPerChapterTag">
+                                <option value="0" selected>Default (No Chapter Throttle/Delay)</option>
+                                <option value="3000">3 Secs/Chapter</option>
+                                <option value="5000">5 Secs/Chapter </option>
+                                <option value="10000">10 Secs/Chapter</option>
+                                <option value="20000">20 Secs/Chapter </option>
+                                <option value="30000">30 Secs/Chapter</option>
+                                <option value="60000">1 Min/Chapter</option>
+                                <option value="300000">5 Mins/Chapter</option>
+                                <option value="600000">10 Mins/Chapter</option>
+                                <option value="1800000">30 Mins/Chapter</option>
+                                <option value="3600000">60 Mins/Chapter</option>
+                                <option value="simulate_reading">Simulate Reading (7-15 Mins/Chapter)</option>
+                            </select>
                         </td>
                         <td>__MSG_label_Manual_Delay_Per_Chapter__</td>
                     </tr>
+                </table>
+                <table id="advancedOptionsTable">
                     <tr id="overrideParserDelayWithManualDelay">
                         <td><input id="overrideMinimumDelayCheckbox" type="checkbox" name="overrideMinimumDelayCheckbox" value="false"></td>
                         <td>__MSG_label_Override_Default_Minimum_Delay__</td>
@@ -752,6 +782,7 @@
         <script src="js/parsers/GoldennovelParser.js"></script>
         <script src="js/parsers/Gratuit4049025WebadorParser.js"></script>
         <script src="js/parsers/GravityTalesParser.js"></script>
+        <script src="js/parsers/GrandOldBooks.js"></script>
         <script src="js/parsers/GunnerkriggParser.js"></script>
         <script src="js/parsers/GutenbergDEParser.js"></script>
         <script src="js/parsers/GzbpParser.js"></script>

@@ -28,6 +28,11 @@ class FoxaholicParser extends WordpressBaseParser {
             : title.textContent;
     }
 
+    removeUnwantedElementsFromContentElement(element) {
+        util.removeChildElementsMatchingSelector(element, "div.foxaholic-publift-manga-chapter, div.chapter-warning");
+        super.removeUnwantedElementsFromContentElement(element);
+    }
+
     findCoverImageUrl(dom) {
         return util.getFirstImgSrc(dom, "div.summary_image");
     }

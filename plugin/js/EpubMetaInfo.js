@@ -37,124 +37,241 @@ class EpubMetaInfo {
     }
 
     static getDefaultStyleSheet() {
-        return ""+
+        return "" +
         // Style for svg images. I got this from BTE-Gen epunbs. Works nicely.
-        "div.svg_outer {\r"+
-        "   display: block;\r"+
-        "   margin-bottom: 0;\r"+
-        "   margin-left: 0;\r"+
-        "   margin-right: 0;\r"+
-        "   margin-top: 0;\r"+
-        "   padding-bottom: 0;\r"+
-        "   padding-left: 0;\r"+
-        "   padding-right: 0;\r"+
-        "   padding-top: 0;\r"+
-        "   text-align: left;\r"+
-        "}\r"+
-        "div.svg_inner {\r"+
-        "   display: block;\r"+
-        "   text-align: center;\r"+
-        "}\r"+
+        "div.svg_outer {\r" +
+        "   display: block;\r" +
+        "   margin-bottom: 0;\r" +
+        "   margin-left: 0;\r" +
+        "   margin-right: 0;\r" +
+        "   margin-top: 0;\r" +
+        "   padding-bottom: 0;\r" +
+        "   padding-left: 0;\r" +
+        "   padding-right: 0;\r" +
+        "   padding-top: 0;\r" +
+        "   text-align: left;\r" +
+        "}\r" +
+        "div.svg_inner {\r" +
+        "   display: block;\r" +
+        "   text-align: center;\r" +
+        "}\r" +
+
+        // SVG scaling stability
+        ".svg_outer svg {\r" +
+        "   display: block;\r" +
+        "   max-width: 100%;\r" +
+        "   height: auto;\r" +
+        "   margin: 0 auto;\r" +
+        "}\r" +
 
         // Centered headings and some margin to make sure it's not too close to the content.
-        "h1, h2 {\r"+
-        "   text-align: center;\r"+
-        "   margin-bottom: 10%;\r"+
-        "   margin-top: 10%;\r"+
-        "}\r"+
-        "h3, h4, h5, h6 {\r"+
-        "   text-align: center;\r"+
-        "   margin-bottom: 15%;\r"+
-        "   margin-top: 10%;\r"+
-        "}\r"+
+        "h1 {\r" +
+        "   font-size: 1.6em;\r" +
+        "   border-bottom: 2px solid #333;\r" +
+        "   padding-bottom: 0.3em;\r" +
+        "}\r" +
+        "h2 {\r" +
+        "   font-size: 1.2em;\r" +
+        "   color: #444;\r" +
+        "}\r" +
+        "h1, h2 {\r" +
+        "   text-align: center;\r" +
+        "   margin-bottom: 10%;\r" +
+        "   margin-top: 10%;\r" +
+        "}\r" +
+        "h3, h4, h5, h6 {\r" +
+        "   text-align: center;\r" +
+        "   margin-bottom: 15%;\r" +
+        "   margin-top: 10%;\r" +
+        "}\r" +
 
         // Style for lists. Calibre sometimes has issues with the placement of lists, this fixes it.
-        "ol, ul {\r"+
-        "   padding-left: 8%;\r"+
-        "}\r"+
+        "ol, ul {\r" +
+        "   padding-left: 8%;\r" +
+        "}\r" +
 
-        "body {\r"+
-        "  margin: 2%;\r"+
-        "}\r"+
+        "body {\r" +
+        "   margin: 2%;\r" +
+        "}\r" +
 
         //Breaks extremely long words, screams, wails etc to fit viewer window.
-        "p {\r"+
-        "  overflow-wrap: break-word;\r"+
-        "}\r"+
+        "p {\r" +
+        "   overflow-wrap: break-word;\r" +
+        "   text-indent: 1.5em;\r" +
+        "}\r" +
+
+        //Add text intent for <p> tag
+        "p + p {\r" +
+        "   text-indent: 1.5em;\r" +
+        "}\r" +
+
+        //First letter of first start paragraph with <p> tag.
+        "p:first-letter {\r" +
+        "   text-transform: uppercase;\r" +
+        "}\r" +
+
+        "p:has(> img:only-child) {\r" +
+        "   text-indent: 0;\r" +
+        "}\r" +
+
+        "h1 + p::first-letter,\r" +
+        "h2 + p::first-letter,\r" +
+        "h3 + p::first-letter,\r" +
+        "h1 + p *::first-letter,\r" +
+        "h2 + p *::first-letter,\r" +
+        "h3 + p *::first-letter {\r" +
+        "   font-size: 2em;\r" +
+        "   font-family: cursive;\r" +
+        "   font-weight: bold;\r" +
+        "   font-style: italic;\r" +
+        "   text-shadow: 0 1px 2px rgba(255, 223, 97, 1), 1px 2px 3px black;\r" +
+        "   text-transform: uppercase;\r" +
+        "}\r" +
+
+        "h1 + p,\r" +
+        "h3 + p,\r" +
+        "h2 + p {\r" +
+        "   text-indent: 1.5em;\r" +
+        "}\r" +
 
         // Prevent texts inside mutliple definition list tags going outside viewer window.
         // Example https://www.baka-tsuki.org/project/index.php?title=The_Unexplored_Summon_Blood_Sign:Volume2_Opening2
         // It looks okay in a browser but in devices with small screen, it's almost unreadable.
-        "dd, dt, dl {\r"+
-        "  padding: 0;\r"+
-        "  margin: 0;\r"+
-        "}\r"+
+        "dd, dt, dl {\r" +
+        "   padding: 0;\r" +
+        "   margin: 0;\r" +
+        "}\r" +
 
-        "img {\r"+
-        "   display: block;\r"+
-        "   min-height: 1em;\r"+
-        "   max-height: 100%;\r"+
-        "   max-width: 100%;\r"+
-        "   padding-bottom: 0;\r"+
-        "   padding-left: 0;\r"+
-        "   padding-right: 0;\r"+
-        "   padding-top: 0;\r"+
-        "   margin-left: auto;\r"+
-        "   margin-right: auto;\r"+
-        "   margin-bottom: 2%;\r"+
-        "   margin-top: 2%;\r"+
-        "}\r"+
+        "img {\r" +
+        "   display: block;\r" +
+        "   min-height: 1em;\r" +
+        "   max-height: 100%;\r" +
+        "   max-width: 100%;\r" +
+        "   padding-bottom: 0;\r" +
+        "   padding-left: 0;\r" +
+        "   padding-right: 0;\r" +
+        "   padding-top: 0;\r" +
+        "   margin-left: auto;\r" +
+        "   margin-right: auto;\r" +
+        "   margin-bottom: 2%;\r" +
+        "   margin-top: 2%;\r" +
+        "}\r" +
+
+        // COVER PAGE ENGINE
+        ".cover-page {\r" +
+        "   display: table;\r" +
+        "   width: 100%;\r" +
+        "   min-height: 100vh;\r" +
+        "   text-align: center;\r" +
+        "}\r" +
+
+        ".cover-page-inner {\r" +
+        "   display: table-cell;\r" +
+        "   vertical-align: middle;\r" +
+        "   text-align: center;\r" +
+        "   padding: 0 0.8em;\r" +
+        "}\r" +
+
+        // TITLE UNDER COVER
+
+        ".cover-title {\r" +
+        "   margin-top: 0.75em;\r" +
+        "   margin-bottom: 0;\r" +
+        "   font-size: 1.45em;\r" +
+        "   font-weight: 600;\r" +
+        "   line-height: 1.25;\r" +
+        "   letter-spacing: 0.02em;\r" +
+        "   text-align: center;\r" +
+        "   font-family: \"Times New Roman\", Georgia, serif;\r" +
+        "   word-break: break-word;\r" +
+        "}\r" +
 
         // images embedded in sentances (e.g. Emoji)
-        "img.inline {\r"+
-        "   display: inline;\r"+
-        "   min-height: 1em;\r"+
-        "   margin-bottom: 0;\r"+
-        "   margin-top: 0;\r"+
-        "}\r"+
+        "img.inline {\r" +
+        "   display: inline;\r" +
+        "   min-height: 1em;\r" +
+        "   margin-bottom: 0;\r" +
+        "   margin-top: 0;\r" +
+        "}\r" +
 
-        // differentiate caption text from body text 
-       ".thumbcaption {\r"+
-       "  display: block;\r"+
-       "  font-size: 0.9em;\r"+
-       "  padding-right: 5%;\r"+
-       "  padding-left: 5%;\r"+
-       "}\r"+
-       
+        // differentiate caption text from body text
+        ".thumbcaption {\r" +
+        "   display: block;\r" +
+        "   font-size: 0.9em;\r" +
+        "   padding-right: 5%;\r" +
+        "   padding-left: 5%;\r" +
+        "}\r" +
+
         // To make hr tags more visible. BT doesn't use them very often but other sites might.
-        "hr {\r"+
-        "   color: black;\r"+
-        "   background-color: black;\r"+
-        "   height: 2px;\r"+
-        "}\r"+
+        "hr {\r" +
+        "   border: none;\r" +
+        "   background: black;\r" +
+        "   height: 2px;\r" +
+        "}\r" +
 
         // Styling all links.
-        "a:link {\r"+
-        "   text-decoration: none;\r"+
-        "   color: #0B0080;\r"+
-        "}\r"+
-        "a:visited {\r"+
-        "   text-decoration: none;\r"+
-        "}\r"+
-        "a:hover {\r"+
-        "   text-decoration: underline;\r"+
-        "}\r"+
-        "a:active {\r"+
-        "   text-decoration: underline;\r"+
-        "}"+
+        "a:link {\r" +
+        "   text-decoration: none;\r" +
+        "   color: #0B0080;\r" +
+        "}\r" +
+        "a:visited {\r" +
+        "   text-decoration: none;\r" +
+        "}\r" +
+        "a:hover {\r" +
+        "   text-decoration: underline;\r" +
+        "}\r" +
+        "a:active {\r" +
+        "   text-decoration: underline;\r" +
+        "}\r" +
 
-        "table {\r"+
-        "   width: 90%;\r"+
-        "   border-collapse: collapse;\r"+
-        "}\r"+
-        "table, th, td {\r"+
-        "   border: 1px solid black;\r"+
-        "}\r"+
+        // red link for BT non-existent page //
+        "a.new {\r" +
+        "   color: #ba0000;\r" +
+        "}\r" +
+
+        // some groups use <pre> tag for character status with no wrapping, thus breaking the view in ebook //
+        "pre {\r" +
+        "   white-space: pre-wrap;\r" +
+        "}\r" +
+        "th {\r" +
+        "   background: #333;\r" +
+        "   color: #fff;\r" +
+        "   padding: 6px 8px;\r" +
+        "   text-align: left;\r" +
+        "   font-size: 0.85em;\r" +
+        "}\r" +
+        "td {\r" +
+        "   padding: 5px 8px;\r" +
+        "   border-bottom: 1px solid #ddd;\r" +
+        "   vertical-align: top;\r" +
+        "   font-size: 0.88em;\r" +
+        "}\r" +
+
+        "table {\r" +
+        "   width: 90%;\r" +
+        "   border-collapse: collapse;\r" +
+        "   margin-bottom: 1em;\r" +
+        "}\r" +
+        "table, th, td {\r" +
+        "   border: 1px solid black;\r" +
+        "}\r" +
+        "tr:nth-child(odd) td {\r" +
+        "   background: #f9f9f9;\r" +
+        "}\r" +
+        "tr:nth-child(even) td {\r" +
+        "   background: #eef5ff;\r" +
+        "}\r" +
+        "nav a {\r" +
+        "   display: block;\r" +
+        "   margin: 0.2em 0;\r" +
+        "   color: #1a1a6e;\r" +
+        "}\r" +
 
         // Box around author notes
         ".webToEpub-author-note {\r" +
-        "    border: 1px solid black; padding: 0.5em\r" +
-        "}";
+        "   border: 1px solid black;\r" +
+        "   padding: 0.5em;\r" +
+        "}\r";
     }
 
     static getEpubMetaAddInfo(dom, url, allTags) {
@@ -171,7 +288,7 @@ class EpubMetaInfo {
         }
         return metaAddInfo;
     }
-    
+
     static addSubjectNovelupdate(dom, allTags) {
         let selector = "#seriesgenre .genre";
         if (allTags) {
@@ -183,7 +300,7 @@ class EpubMetaInfo {
     static addDescriptionNovelupdate(dom) {
         return dom.querySelector("#editdescription").textContent.replace(/\n+/g, "\n").replace(/\n/g, "\n\n");
     }
-    
+
     static addAuthorNovelupdate(dom) {
         return dom.querySelector("#authtag").textContent;
     }

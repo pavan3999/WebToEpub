@@ -4,6 +4,7 @@
 "use strict";
 
 parserFactory.register("bakapervert.wordpress.com", () => new WordpressBaseParser());
+parserFactory.register("wujizun.com", () => new WordpressBaseParser());
 parserFactory.register("crimsonmagic.me", () => new WordpressBaseParser());
 parserFactory.register("shalvationtranslations.wordpress.com", () => new WordpressBaseParser());
 parserFactory.register("frostfire10.wordpress.com", () => new WordpressBaseParser());
@@ -60,7 +61,13 @@ class WordpressBaseParser extends Parser {
     findParentNodeOfChapterLinkToRemoveAt(link) {
         // "next" and "previous" chapter links may be inside <strong> then <p> tag
         let toRemove = util.moveIfParent(link, "strong");
-        return util.moveIfParent(toRemove, "p");
+        return util.moveIfParent(toRemove, "p") ||
+            util.moveIfParent(toRemove, "span");
+    }
+
+    removeUnwantedElementsFromContentElement(element) {
+        util.removeChildElementsMatchingSelector(element, "div.cb_p6_patreon_button, div.jp-relatedposts, .cbxwpbkmarkwrap");
+        super.removeUnwantedElementsFromContentElement(element);
     }
 
     static findChapterTitleElement(dom) {

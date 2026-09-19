@@ -6,7 +6,7 @@ parserFactory.register("mvlempyr.io", () => new MvlempyrParser());
 class MvlempyrParser extends Parser {
     constructor() {
         super();
-        this.minimumThrottle = 1000;
+        this.minimumThrottle = 0;
     }
 
     async getChapterUrls(dom) {
@@ -69,10 +69,23 @@ class MvlempyrParser extends Parser {
         let epubDescription = ([...dom.querySelectorAll("div.synopsis")]);
         return epubDescription.map(e => e.innerHTML.replace(/<br><br>/g, "\n\n").replace(/<br>/g, "\n"));
     }
-  
+
     extractSubject(dom) {
-        let tags = ([...dom.querySelectorAll("div.genere-tagslist a")]);
-        let regex = new RegExp("^#");
-        return tags.map(e => e.textContent.trim().replace(regex, "")).join(", ");
+        const regex = /^#/;
+
+        let seen = new Set();
+        let result = [];
+
+        [...dom.querySelectorAll("div.genere-tagslist a")]
+            .map(e => e.textContent.trim().replace(regex, ""))
+            .forEach(tag => {
+                let key = tag.toLowerCase();
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    result.push(tag);
+                }
+            });
+
+        return result.join(", ");
     }
 }
