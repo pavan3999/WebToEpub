@@ -206,9 +206,9 @@ class PygKitParser extends Parser { // eslint-disable-line no-unused-vars
             chapterUrls.length < expectedTotal
         ) {
             throw new Error(
-                `PYG-KIT chapter discovery incomplete: found ` +
+                "PYG-KIT chapter discovery incomplete: found " +
                 `${chapterUrls.length} of ${expectedTotal} chapters. ` +
-                `The site's chapter-window layout may have changed.`
+                "The site's chapter-window layout may have changed."
             );
         }
 
@@ -266,7 +266,7 @@ class PygKitParser extends Parser { // eslint-disable-line no-unused-vars
         }
 
         // A few layouts use "Start Reading" for the first chapter.
-        link = [...dom.querySelectorAll('a[href*="/chapters/"]')]
+        link = [...dom.querySelectorAll("a[href*=\"/chapters/\"]")]
             .find(a => {
                 const text = a.textContent
                     .replace(/\s+/g, " ")
@@ -286,11 +286,11 @@ class PygKitParser extends Parser { // eslint-disable-line no-unused-vars
 
         // If already on a chapter page, use its current chapter URL.
         if (/\/chapters\/\d+(?:[/?#]|$)/.test(dom.baseURI)) {
-            return dom.querySelector('a[href*="/chapters/"]');
+            return dom.querySelector("a[href*=\"/chapters/\"]");
         }
 
         // Last fallback.
-        return dom.querySelector('a[href*="/chapters/"]');
+        return dom.querySelector("a[href*=\"/chapters/\"]");
     }
 
     findChapterLinks(dom) {
@@ -299,7 +299,7 @@ class PygKitParser extends Parser { // eslint-disable-line no-unused-vars
         const seen = new Set();
 
         for (const link of dom.querySelectorAll(
-            'a[href*="/chapters/"]'
+            "a[href*=\"/chapters/\"]"
         )) {
 
             const href = link.href;
@@ -427,7 +427,7 @@ class PygKitParser extends Parser { // eslint-disable-line no-unused-vars
          *   Next → Chapter 52: ...
          */
         for (const link of dom.querySelectorAll(
-            'a[href*="/chapters/"]'
+            "a[href*=\"/chapters/\"]"
         )) {
 
             const text = link.textContent
@@ -582,7 +582,7 @@ class PygKitParser extends Parser { // eslint-disable-line no-unused-vars
     getBookJsonLd(dom) {
 
         for (const script of dom.querySelectorAll(
-            'script[type="application/ld+json"]'
+            "script[type=\"application/ld+json\"]"
         )) {
 
             const raw = script.textContent
@@ -675,7 +675,7 @@ class PygKitParser extends Parser { // eslint-disable-line no-unused-vars
          *   /en/novels?genre=...
          */
         for (const link of dom.querySelectorAll(
-            'a[href*="/novels?genre="]'
+            "a[href*=\"/novels?genre=\"]"
         )) {
             addSubject(link.textContent);
         }
@@ -697,7 +697,7 @@ class PygKitParser extends Parser { // eslint-disable-line no-unused-vars
         if (main != null) {
 
             for (const link of main.querySelectorAll(
-                'a[href*="/search?"]'
+                "a[href*=\"/search?\"]"
             )) {
 
                 const value = link.textContent
@@ -727,7 +727,7 @@ class PygKitParser extends Parser { // eslint-disable-line no-unused-vars
     extractAuthor(dom) {
 
         const authorLink = dom.querySelector(
-            'a[href*="/authors/"], a[href*="/author/"]'
+            "a[href*=\"/authors/\"], a[href*=\"/author/\"]"
         );
 
         if (authorLink != null) {
@@ -771,7 +771,7 @@ class PygKitParser extends Parser { // eslint-disable-line no-unused-vars
     findCoverImageUrl(dom) {
 
         let image = dom.querySelector(
-            'img[alt*="After Rebirth" i]'
+            "img[alt*=\"After Rebirth\" i]"
         );
 
         if (image != null) {
