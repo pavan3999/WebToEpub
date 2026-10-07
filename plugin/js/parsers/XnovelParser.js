@@ -97,7 +97,7 @@ class XnovelParser extends Parser {
         // Parse broadly, then filter by this novel's path. This is important
         // because the same SSR page also contains unrelated novel records.
         let pattern =
-            /"(\d+)",(?:(?:"0",)?(\d+),)?"((?:\\.|[^"\\])*)","(\/[^"\\]*-chapter-[^"\\]*)"/g;
+            /"(\d+)",(?:(?:"0",)?(\d+),)?"((?:\\.|[^"\\])*)",(?:null,)?"(\/[^"\\]*-chapter-[^"\\]*)"/g;
         let chapters = new Map();
         let lastSequence = 0;
 
