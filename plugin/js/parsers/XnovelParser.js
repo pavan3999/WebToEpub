@@ -193,9 +193,25 @@ class XnovelParser extends Parser {
         }
 
         let content = dom.createElement("div");
+
         for (let element of contentElements) {
             for (let child of [...element.childNodes]) {
-                content.appendChild(child.cloneNode(true));
+                let clone = child.cloneNode(true);
+
+                // XNovel puts its web-reader typography directly in inline
+                // styles (18px/system-ui/line-height:1.8). Those styles leak
+                // into the EPUB and override the EPUB stylesheet.
+                if (clone.nodeType === Node.ELEMENT_NODE) {
+                    clone.removeAttribute("style");
+                    clone.removeAttribute("class");
+
+                    for (let descendant of clone.querySelectorAll("[style], [class]")) {
+                        descendant.removeAttribute("style");
+                        descendant.removeAttribute("class");
+                    }
+                }
+
+                content.appendChild(clone);
             }
         }
 
