@@ -250,8 +250,6 @@ class XnovelParser extends Parser {
             }
         }
 
-        // Chapter pages contain the complete metadata in their keywords.
-        let author = values[1];
         let knownGenres = new Set([
             "action", "adventure", "adult", "anime", "comedy", "drama",
             "ecchi", "fantasy", "harem", "historical", "horror", "isekai",
