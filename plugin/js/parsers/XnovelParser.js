@@ -107,7 +107,12 @@ class XnovelParser extends Parser {
     }
 
     extractAuthor(dom) {
-        return this.extractSchemaBook(dom)?.author?.name
+        let author = this.extractSchemaBook(dom)?.author;
+        if (Array.isArray(author)) {
+            author = author[0];
+        }
+
+        return author?.name
             ?? this.getMetaContent(dom, "meta[name='author']")
             ?? super.extractAuthor(dom);
     }
