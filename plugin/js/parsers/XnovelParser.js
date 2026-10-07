@@ -97,8 +97,9 @@ class XnovelParser extends Parser {
         // Parse broadly, then filter by this novel's path. This is important
         // because the same SSR page also contains unrelated novel records.
         let pattern =
-            /"(\d+)",(?:(?:"0",))?(\d+),"((?:\\.|[^"\\])*)","(\/[^"\\]*-chapter-[^"\\]*)"/g;
+            /"(\d+)",(?:(?:"0",)?(\d+),)?"((?:\\.|[^"\\])*)","(\/[^"\\]*-chapter-[^"\\]*)"/g;
         let chapters = new Map();
+        let lastSequence = 0;
 
         for (let script of dom.querySelectorAll("script")) {
             let text = script.textContent ?? "";
@@ -110,7 +111,9 @@ class XnovelParser extends Parser {
             let match;
 
             while ((match = pattern.exec(text)) != null) {
-                let sequence = Number(match[2]);
+                let sequence = match[2] == null
+                    ? lastSequence + 1
+                    : Number(match[2]);
 
                 if (!Number.isInteger(sequence) || sequence < 1) {
                     continue;
@@ -131,6 +134,8 @@ class XnovelParser extends Parser {
                 if (!this.isNovelChapter(sourceUrl, novelPath)) {
                     continue;
                 }
+
+                lastSequence = sequence;
 
                 if (!chapters.has(sequence)) {
                     chapters.set(sequence, {
