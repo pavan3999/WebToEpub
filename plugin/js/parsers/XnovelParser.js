@@ -14,8 +14,10 @@ class XnovelParser extends Parser {
         // The novel page renders only the latest chapter batch. Fetch chapter
         // 1 once: XNovel embeds the complete chapter dataset in its Qwik SSR
         // state, so there is no need to request hundreds of chapter pages.
+        // url.txt lists chapter 1 as "Read Now" rather than its actual
+        // chapter title, so identify it by the chapter-1 URL instead.
         let firstChapter = chapterLinks.find(chapter =>
-            /^Chapter\s+1(?:\D|$)/i.test(chapter.title ?? "")
+            /\/7136768-chapter-1-qi-yuan(?:[/?#]|$)/i.test(chapter.sourceUrl ?? "")
         );
 
         if (firstChapter != null) {
