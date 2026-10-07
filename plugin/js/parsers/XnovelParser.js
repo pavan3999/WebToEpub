@@ -146,6 +146,20 @@ class XnovelParser extends Parser {
             }
         }
 
+        // Chapter 1 has a different Qwik record shape on the reading
+        // page, so add it directly from the canonical URL and h6 heading.
+        let canonical = dom.querySelector("link[rel='canonical']")?.href;
+        let titleElement = dom.querySelector("h6");
+        if (canonical != null && titleElement != null) {
+            let sourceUrl = new URL(canonical, dom.baseURI).href;
+            if (this.isNovelChapter(sourceUrl, novelPath)) {
+                chapters.set(1, {
+                    sourceUrl,
+                    title: titleElement.textContent.trim()
+                });
+            }
+        }
+
         return [...chapters.entries()]
             .sort(([a], [b]) => a - b)
             .map(([, chapter]) => chapter);
