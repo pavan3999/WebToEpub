@@ -5,7 +5,6 @@ parserFactory.register("xnovel.app", () => new XnovelParser());
 class XnovelParser extends Parser {
     constructor() {
         super();
-        this.chapterCache = new Map();
     }
 
     async getChapterUrls(dom) {
@@ -206,7 +205,7 @@ class XnovelParser extends Parser {
 
     extractTitleImpl(dom) {
         return (
-            dom.querySelector("h3 a[href*='-my-core-is-the-boss']")?.textContent?.trim()
+            dom.querySelector("h3 a[href]")?.textContent?.trim()
             ?? this.getMetaContent(dom, "meta[property='og:title']")
                 .replace(/\s+-\s+(?:Your novels, Your library, Your world|Watching free novel on Xnovel).*$/i, "")
                 .trim()
