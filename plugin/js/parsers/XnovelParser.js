@@ -8,6 +8,13 @@ class XnovelParser extends Parser {
     }
 
     async getChapterUrls(dom) {
+        let chapters = this.extractSerializedChapterUrls(dom);
+
+        if (chapters.length > 0) {
+            return chapters;
+        }
+
+        // Fallback for pages where XNovel's serialized chapter state is absent.
         let chapterLinks = [
             ...dom.querySelectorAll(
                 "div[data-name='chapter-list-content'] a[href*='-chapter-']"
@@ -23,8 +30,53 @@ class XnovelParser extends Parser {
                 }
                 seen.add(chapter.sourceUrl);
                 return true;
-            })
-            .reverse();
+            });
+    }
+
+    extractSerializedChapterUrls(dom) {
+        let chapters = new Map();
+
+        for (let script of dom.querySelectorAll("script")) {
+            let text = script.textContent ?? "";
+            if (!text.includes("-chapter-")) {
+                continue;
+            }
+
+            // XNovel's Qwik SSR state contains records in the form:
+            // "chapterId",chapterNumber,"Chapter title","/novel/chapter-slug"
+            // and for the latest chapter an extra "0" field before the number.
+            let pattern =
+                /"(\d+)",(?:\d+",)?(\d+),"((?:\\.|[^"\\])*)","(\/[^"\\]*-chapter-[^"\\]*)"/g;
+
+            let match;
+            while ((match = pattern.exec(text)) != null) {
+                let sequence = Number(match[2]);
+                if (!Number.isInteger(sequence) || sequence < 1) {
+                    continue;
+                }
+
+                let title;
+                let path;
+                try {
+                    title = JSON.parse(`"${match[3]}"`);
+                    path = JSON.parse(`"${match[4]}"`);
+                } catch (error) {
+                    continue;
+                }
+
+                let sourceUrl = new URL(path, dom.baseURI).href;
+                if (!chapters.has(sequence)) {
+                    chapters.set(sequence, {
+                        sourceUrl,
+                        title
+                    });
+                }
+            }
+        }
+
+        return [...chapters.entries()]
+            .sort(([a], [b]) => a - b)
+            .map(([, chapter]) => chapter);
     }
 
     findContent(dom) {
@@ -49,24 +101,60 @@ class XnovelParser extends Parser {
     }
 
     extractTitleImpl(dom) {
-        return dom.querySelector("meta[property='og:title']");
+        return this.extractSchemaBook(dom)?.name
+            ?? this.getMetaContent(dom, "meta[property='og:title']")
+            ?? super.extractTitleImpl(dom);
     }
 
     extractAuthor(dom) {
-        return dom.querySelector("meta[name='author']")
+        return this.extractSchemaBook(dom)?.author?.name
+            ?? this.getMetaContent(dom, "meta[name='author']")
             ?? super.extractAuthor(dom);
     }
 
     extractSubject(dom) {
-        return dom.querySelector("meta[name='keywords']");
+        let genres = this.extractSchemaBook(dom)?.genre;
+        if (Array.isArray(genres)) {
+            return genres.filter(Boolean).join(", ");
+        }
+
+        return this.getMetaContent(dom, "meta[name='keywords']");
     }
 
     extractDescription(dom) {
-        return dom.querySelector("meta[name='description']");
+        return this.extractSchemaBook(dom)?.description
+            ?? this.getMetaContent(dom, "meta[name='description']")
+            ?? "";
     }
 
     findCoverImageUrl(dom) {
-        return dom.querySelector("meta[property='og:image']")?.content ?? null;
+        let image = this.extractSchemaBook(dom)?.image
+            ?? this.getMetaContent(dom, "meta[property='og:image']");
+
+        if (image == null || image === "") {
+            return null;
+        }
+
+        return new URL(image, dom.baseURI).href;
+    }
+
+    extractSchemaBook(dom) {
+        for (let script of dom.querySelectorAll("script[type='application/ld+json']")) {
+            try {
+                let data = JSON.parse(script.textContent);
+                if (data?.["@type"] === "Book") {
+                    return data;
+                }
+            } catch (error) {
+                // Ignore malformed JSON-LD and use normal DOM fallbacks.
+            }
+        }
+
+        return null;
+    }
+
+    getMetaContent(dom, selector) {
+        return dom.querySelector(selector)?.getAttribute("content")?.trim() ?? "";
     }
 
     removeUnwantedElementsFromContentElement(element) {
