@@ -78,8 +78,18 @@ class EpubItem {
     populateTitle(doc, body) {
         let title = doc.querySelector("title");
         let h1 = body.querySelector("h1");
-        if (util.isNullOrEmpty(title.textContent) && (h1 !== null)) {
-            title.textContent = h1.textContent;
+    
+        if (util.isNullOrEmpty(title.textContent)) {
+            if (h1 !== null) {
+            // Use h1 content if available
+                title.textContent = h1.textContent;
+            } else if (this.chapterTitle && !util.isNullOrEmpty(this.chapterTitle)) {
+            // Fallback to chapter title
+                title.textContent = this.chapterTitle;
+            } else {
+            // Final fallback to generic title
+                title.textContent = "Chapter";
+            }
         }
     }
 
@@ -126,7 +136,7 @@ class ChapterEpubItem extends EpubItem { // eslint-disable-line no-unused-vars
         super(chapter.sourceUrl);
         super.setIndex(index);
         this.nodes = Array.from(content.childNodes);
-        this.chapterTitle = chapter.title;
+        this.chapterTitle = chapter.title || "Chapter " + (index + 1); // Ensure fallback
         this.newArc = chapter.newArc;
     }
 
