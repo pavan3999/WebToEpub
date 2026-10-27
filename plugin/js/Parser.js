@@ -886,12 +886,13 @@ class Parser {
 
     getRateLimit()
     {
-        if (this.userPreferences.manualDelayPerChapter.value == "simulate_reading")
+        let delayPreference = this.userPreferences?.manualDelayPerChapter?.value;
+        if (delayPreference === "simulate_reading")
         {
-            return this.userPreferences.manualDelayPerChapter.value;
+            return delayPreference;
         }
-        let manualDelayPerChapterValue = parseInt(this.userPreferences.manualDelayPerChapter.value);
-
+        let temp = parseInt(delayPreference);
+        let manualDelayPerChapterValue = (!isNaN(temp)) ? temp : this.minimumThrottle;
         if (!this.userPreferences.overrideMinimumDelay.value)
         {
             return Math.max(this.minimumThrottle, manualDelayPerChapterValue);
