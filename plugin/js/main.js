@@ -232,30 +232,38 @@ var main = (function() {
         }
     }
 
-    function getActiveTabDOM(tabId) {
+    async function getActiveTabDOM(tabId) {
         addMessageListener();
-        injectContentScript(tabId);
+        try {
+            await injectContentScript(tabId);
+        } catch (error) {
+            ErrorLog.showErrorMessage(error);
+        }
     }
 
-    function injectContentScript(tabId) {
+    async function injectContentScript(tabId) {
+        // Checking for firefox here because `browser.*` requires minimum chrome version 148
+        const tab = util.isFirefox()
+            ? await browser.tabs.get(tabId)
+            : await chrome.tabs.get(tabId);
+
+        const cannotReadUrl = !tab.url;
+        if (cannotReadUrl) {
+            return;
+        }
+
         if (util.isFirefox()) {
-            Firefox.injectContentScript(tabId);
+            return Firefox.injectContentScript(tabId);
         } else {
-            chromeInjectContentScript(tabId);
+            return chromeInjectContentScript(tabId);
         }
     }
 
     function chromeInjectContentScript(tabId) {
-        try {
-            chrome.scripting.executeScript({
-                target: {tabId: tabId},
-                files: ["js/ContentScript.js"]
-            });
-        } catch {
-            if (chrome.runtime.lastError) {
-                util.log(chrome.runtime.lastError.message);
-            }
-        }
+        return chrome.scripting.executeScript({
+            target: {tabId: tabId},
+            files: ["js/ContentScript.js"],
+        });
     }
 
     function populateControls() {
