@@ -1,3 +1,7 @@
+# Removed from the Google Chrome extension Store
+
+Read more here:  <a href="https://github.com/dteviot/WebToEpub/issues/3172">#3172</a>
+
 <!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
 
 <a id="readme-top"></a>
@@ -535,7 +539,6 @@ WebToEpub is a browser extension for Firefox and Chrome that converts web novels
     <li>wanderertl130.id</li>
     <li>wanderinginn.com</li>
     <li>watashiwasugoidesu.com</li>
-    <li>wattpad.com</li>
     <li>wetriedtls.com</li>
     <li>webnovel.com</li>
     <li>webnovel.live</li>
@@ -766,11 +769,13 @@ Don't forget to give the project a star! Thanks again!
     <li>alethiophile</li>
     <li>Anartigone</li>
     <li>ARYAN-9099</li>
+    <li>Ash-Cozey</li>
     <li>Asif Mahmood</li>
     <li>Aurimas Niekis</li>
     <li>baalthasar</li>
     <li>Bartuzen</li>
     <li>basitcodeenv</li>
+    <li>beebutler</li>
     <li>bendur</li>
     <li>cabbey (parser for Shrine Comics)</li>
     <li>Cavad (Patreon title fallback and Royal Road chapter list fixes)</li>
@@ -788,6 +793,7 @@ Don't forget to give the project a star! Thanks again!
     <li>Hogesyx</li>
     <li>ImmortalDreamer</li>
     <li>Jemeni11</li>
+    <li>jhvanriper-rgb</li>
     <li>JimmXinu</li>
     <li>Joel Sunil</li>
     <li>jurassicplayer</li>
